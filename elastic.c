@@ -1,5 +1,4 @@
 #include "chrono.h"
-#include "compil.date"
 #include "elastic.h"
 #include "ls_calls.h"
 
@@ -278,7 +277,7 @@ int main(int argc,char **argv) {
 	int      ier;
 	char     stim[32];
 
-  fprintf(stdout,"  -- ELASTIC, Release %s (%s) \n     %s\n    %s\n",LS_VER,LS_REL,LS_CPY,COMPIL);
+  fprintf(stdout,"  -- ELASTIC, Release %s (%s) \n     %s\n",LS_VER,LS_REL,LS_CPY);
   tminit(lsst.info.ctim,TIMEMAX);
   chrono(ON,&lsst.info.ctim[0]);
 
