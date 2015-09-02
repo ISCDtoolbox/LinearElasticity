@@ -1,5 +1,6 @@
 #include "elastic.h"
 #include "ls_calls.h"
+#include "libmesh5.h"
 
 
 /* read mesh */
@@ -170,9 +171,6 @@ int loadSol(LSst *lsst) {
   if ( !np || typtab[0] != 2 || np != lsst->info.np )  return(-1);
 
   if ( abs(lsst->info.imprim) > 3 )  fprintf(stdout,"  -- READING DATA FILE %s\n",data);
-  /* alloc */
-  lsst->sol.u  = (double*)calloc(lsst->info.dim*lsst->info.np,sizeof(double));
-  assert(lsst->sol.u);
 
   /* read mesh solutions */
   GmfGotoKwd(inm,GmfSolAtVertices);

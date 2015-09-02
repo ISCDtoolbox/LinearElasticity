@@ -1,4 +1,3 @@
-#include "chrono.h"
 #include "elastic.h"
 #include "ls_calls.h"
 #include "sparse.h"
@@ -101,7 +100,6 @@ static int setTGV_3d(LSst *lsst,Hash *hash,pCsr A) {
   if ( lsst->sol.cltyp & LS_ver ) {
     for (k=1; k<=lsst->info.np; k++) {
       ppt = &lsst->mesh.point[k];
-      if ( !ppt->ref )  continue;
       pcl = getCl(&lsst->sol,ppt->ref,LS_ver);
       if ( pcl && pcl->typ == Dirichlet ) {
         csrSet(A,3*(k-1)+0,3*(k-1)+0,LS_TGV);
@@ -435,20 +433,28 @@ int elasti1_3d(LSst *lsst) {
     fprintf(stdout,"     Assembly FE matrix\n");
   }
 
-  /* build matrix */
+  /* counting P2 nodes (for dylib) */
+	if ( lsst->info.typ == P2 && !lsst->info.np2 )  lsst->info.np2 = hashar(lsst);
+
+  /* allocating memory (for dylib) */
+  if ( !lsst->sol.u ) {
+    lsst->sol.u  = (double*)calloc(lsst->info.dim * (lsst->info.npi+lsst->info.np2),sizeof(double));
+    assert(lsst->sol.u);
+  }
+
+  /* build matrix and right-hand side */
 	A = 0;
 	F = 0;
-	switch (lsst->info.typ) {
-  case P1:
-  default:
+	
+	if ( lsst->info.typ == P1 ) {
     A = matA_P1_3d(lsst);
     F = rhsF_P1_3d(lsst);
-		break;
-	case P2:
-	  hashar(lsst);
-	  /*A = matA_P2_3d(mesh,sol);
-    F = rhsF_P2_3d(mesh,sol);*/
-	  break;
+	}
+  else { 
+	  /*
+		A = matA_P2_3d(mesh,sol);
+    F = rhsF_P2_3d(mesh,sol);
+		*/
   }
 
   chrono(OFF,&lsst->info.ctim[3]);
@@ -460,7 +466,7 @@ int elasti1_3d(LSst *lsst) {
 		free(lsst->mesh.tetra);
     if ( !lsst->info.zip )  free(lsst->mesh.point);
 	}
-  free(lsst->hash.item);
+  if ( lsst->info.typ == P2 )  free(lsst->hash.item);
 
   /* -- Part II: solver */
   if ( abs(lsst->info.imprim) > 4 )  fprintf(stdout,"  1.2 SOLVING\n");
@@ -468,7 +474,7 @@ int elasti1_3d(LSst *lsst) {
   ier = csrPrecondGrad(A,lsst->sol.u,F,&lsst->sol.err,&lsst->sol.nit,1);
   chrono(OFF,&lsst->info.ctim[4]);
   if ( abs(lsst->info.imprim) > 0 ) {
-    if ( ier <= 0 )  
+    if ( ier <= 0 )
       fprintf(stdout,"  ## SOL NOT CONVERGED: ier= %d\n",ier);
     else if ( abs(lsst->info.imprim) > 4 )
       fprintf(stdout,"  %%%% CONVERGENCE: err= %E  nit= %d\n",lsst->sol.err,lsst->sol.nit);

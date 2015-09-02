@@ -1,4 +1,3 @@
-#include "chrono.h"
 #include "elastic.h"
 #include "ls_calls.h"
 #include "sparse.h"
@@ -71,7 +70,6 @@ static int setTGV_2d(LSst *lsst,Hash *hash,pCsr A) {
   if ( lsst->sol.cltyp & LS_ver ) {
     for (k=1; k<=lsst->info.np; k++) {
       ppt = &lsst->mesh.point[k];
-      if ( !ppt->ref )  continue;
       pcl = getCl(&lsst->sol,ppt->ref,LS_ver);
       if ( pcl && pcl->typ == Dirichlet ) {
         csrSet(A,2*(k-1)+0,2*(k-1)+0,LS_TGV);
@@ -283,20 +281,28 @@ int elasti1_2d(LSst *lsst) {
     fprintf(stdout,"     Assembly FE matrix\n");
   }
 
+  /* counting P2 nodes (for dylib) */
+	if ( lsst->info.typ == P2 && !lsst->info.np2 )  lsst->info.np2 = hashar(lsst);
+
+  /* allocating memory (for dylib) */
+  if ( !lsst->sol.u ) {
+    lsst->sol.u  = (double*)calloc(lsst->info.dim * (lsst->info.npi+lsst->info.np2),sizeof(double));
+    assert(lsst->sol.u);
+  }
+
   /* build matrix */
   A = 0;
   F = 0;
-  switch (lsst->info.typ) {
-  case P1:
-  default:
+	
+	if ( lsst->info.typ == P1 ) {
     A = matA_P1_2d(lsst);
     F = rhsF_P1_2d(lsst);
-    break;
-  case P2:    
-    hashar(lsst);
-    /*A = matA_P2_2d(mesh,sol);
-    F = rhsF_P2_2d(mesh,sol);*/
-    break;
+	}
+  else {
+    /*
+		A = matA_P2_2d(mesh,sol);
+    F = rhsF_P2_2d(mesh,sol);
+		*/
   }
 
   chrono(OFF,&lsst->info.ctim[3]);
@@ -308,6 +314,7 @@ int elasti1_2d(LSst *lsst) {
 		free(lsst->mesh.tria);
     if ( !lsst->info.zip )  free(lsst->mesh.point);
 	}
+  if ( lsst->info.typ == P2 )  free(lsst->hash.item);
 
   /* -- Part II: solver */
   if ( abs(lsst->info.imprim) > 4 )  fprintf(stdout,"  1.2 SOLVING\n");

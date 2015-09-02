@@ -1,5 +1,3 @@
-#include "chrono.h"
-#include "compil.date"
 #include "elastic.h"
 #include "ls_calls.h"
 
@@ -278,7 +276,7 @@ int main(int argc,char **argv) {
 	int      ier;
 	char     stim[32];
 
-  fprintf(stdout,"  -- ELASTIC, Release %s (%s) \n     %s\n    %s\n",LS_VER,LS_REL,LS_CPY,COMPIL);
+  fprintf(stdout,"  -- ELASTIC, Release %s (%s) \n     %s\n",LS_VER,LS_REL,LS_CPY);
   tminit(lsst.info.ctim,TIMEMAX);
   chrono(ON,&lsst.info.ctim[0]);
 
@@ -311,14 +309,13 @@ int main(int argc,char **argv) {
   /* parse command line */
   if ( !parsar(argc,argv,&lsst) )  return(1);
 
-  /* load data */
+  /* loading date */
   if ( lsst.info.imprim )   fprintf(stdout,"\n  -- INPUT DATA\n");
   chrono(ON,&lsst.info.ctim[1]);
 
+  /* loading mesh */
   ier = loadMesh(&lsst);
 	if ( ier <=0 )  return(1);
-  ier = loadSol(&lsst);
-  if ( !ier )  return(1);
 
   /* set function pointer */
   if ( lsst.info.dim == 2 ) {
@@ -332,6 +329,19 @@ int main(int argc,char **argv) {
     pack    = pack_3d;
   }
 
+  /* counting P2 nodes */
+	if ( lsst.info.typ == P2 )  lsst.info.np2 = hashar(&lsst);
+
+  /* allocating memory */
+  if ( !lsst.sol.u ) {
+    lsst.sol.u  = (double*)calloc(lsst.info.dim * (lsst.info.npi+lsst.info.np2),sizeof(double));
+    assert(lsst.sol.u);
+  }
+
+  /* loading solution (or Dirichlet values) */
+  ier = loadSol(&lsst);
+  if ( !ier )  return(1);
+
   /* parse parameters in file */
   if ( !parsop(&lsst) )  return(1);
   if ( lsst.sol.nmat && !pack(&lsst) )  return(1);
@@ -342,12 +352,6 @@ int main(int argc,char **argv) {
   chrono(ON,&lsst.info.ctim[2]);
   fprintf(stdout,"\n  %s\n   MODULE ELASTIC-LJLL : %s (%s)\n  %s\n",LS_STR,LS_VER,LS_REL,LS_STR);
   if ( lsst.info.imprim )   fprintf(stdout,"\n  -- PHASE 1 : SOLVING\n");
-  
-  /* alloc memory */
-  if ( !lsst.sol.u ) {
-    lsst.sol.u  = (double*)calloc(lsst.info.dim * (lsst.info.npi+lsst.info.np2),sizeof(double));
-    assert(lsst.sol.u);
-  }
 
 	ier = elasti1(&lsst);
 	if ( !ier )  return(1);

@@ -3,7 +3,7 @@
 
 enum {Dirichlet=1, Load};
 enum {P0=0, P1, P2};
-enum {LS_ver=1,LS_edg,LS_tri,LS_tet};
+enum {LS_ver=1,LS_edg=2,LS_tri=4,LS_tet=8};
 
 
 /* data structure */

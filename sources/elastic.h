@@ -12,11 +12,10 @@
 #include <ctype.h>
 
 #include "chrono.h"
-#include "libmesh5.h"
 
 #define LS_VER   "5.0a"
 #define LS_REL   "Aug. 28, 2015"
-#define LS_CPY   "Copyright (c) ICS, 2010-"
+#define LS_CPY   "Copyright (c) ICS-UPMC, 2010-"
 #define LS_STR   "------------------------------------------------------------"
 
 #define LS_LAMBDA     10.0e5
@@ -30,10 +29,8 @@
 #define LS_MAX(a,b)   ( ((a) < (b)) ? (b) : (a) )
 #define LS_MIN(a,b)   ( ((a) < (b)) ? (a) : (b) )
 
-#define PRECI    1.0
 #define EPS      1.e-6
 #define EPSD     1.e-30
-#define EPSA     1.e-200
 
 
 typedef struct {
