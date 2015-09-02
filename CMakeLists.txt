@@ -19,5 +19,6 @@ file(GLOB_RECURSE source_files sources/* common/*)
 add_library(Elas SHARED ${source_files})
 
 project(main)
-add_executable(main elastic.c)
-target_link_libraries(main Elas)
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY "$ENV{HOME}/bin")
+add_executable(sulastic elastic.c)
+target_link_libraries(sulastic Elas)
