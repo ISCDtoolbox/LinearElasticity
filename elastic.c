@@ -186,7 +186,7 @@ static int parsop(LSst *lsst) {
   Cl         *pcl;
   Mat        *pm;
   float       fp1,fp2;
-  int         i,j,ncld,ret;
+  int         i,j,ncld,npar,ret;
   char       *ptr,buf[256],data[256];
   FILE       *in;
 
@@ -204,6 +204,7 @@ static int parsop(LSst *lsst) {
 
   /* read parameters */
   lsst->sol.nbcl = 0;
+	npar = 0;
   while ( !feof(in) ) {
     ret = fscanf(in,"%s",data);
     if ( !ret || feof(in) )  break;
@@ -212,6 +213,7 @@ static int parsop(LSst *lsst) {
     /* check for condition type */
     if ( !strcmp(data,"dirichlet")  || !strcmp(data,"load") ) {
       fscanf(in,"%d",&ncld);
+			npar++;
       for (i=lsst->sol.nbcl; i<lsst->sol.nbcl+ncld; i++) {
         pcl = &lsst->sol.cl[i];
         if ( !strcmp(data,"load") )             pcl->typ = Load;
@@ -253,6 +255,7 @@ static int parsop(LSst *lsst) {
     }
     /* gravity or body force */
     else if ( !strcmp(data,"gravity") ) {
+			npar++;
       lsst->info.load |= (1 << 0);
       for (j=0; j<lsst->info.dim; j++) {
         fscanf(in,"%f ",&fp1);
@@ -260,6 +263,7 @@ static int parsop(LSst *lsst) {
       }
     }
     else if ( !strcmp(data,"lame") ) {
+			npar++;
       fscanf(in,"%d",&ncld);
       assert(ncld <= LS_MAT);
       lsst->sol.nmat = ncld;
@@ -271,6 +275,7 @@ static int parsop(LSst *lsst) {
       }
     }
     else if ( !strcmp(data,"youngpoisson") ) {
+			npar++;
       fscanf(in,"%d",&ncld);
       lsst->sol.nmat = ncld;
       for (i=0; i<ncld; i++) {
@@ -289,7 +294,7 @@ static int parsop(LSst *lsst) {
   }
 
   if ( abs(lsst->info.imprim) > 4 ) {
-    fprintf(stdout,"  %%%% NUMBER OF PARAMETERS %8d\n",lsst->sol.nbcl);
+    fprintf(stdout,"  %%%% NUMBER OF PARAMETERS %8d\n",npar);
   }
 
   return(1);

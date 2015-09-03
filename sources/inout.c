@@ -218,9 +218,9 @@ int saveSol(LSst *lsst) {
   typtab[0] = GmfVec;
 
   /* write sol */
-  GmfSetKwd(inm,GmfSolAtVertices,lsst->info.np+lsst->info.na,type,typtab);
+  GmfSetKwd(inm,GmfSolAtVertices,lsst->info.np+lsst->info.np2,type,typtab);
   if ( lsst->info.ver == GmfFloat ) {
-    for (k=0; k<lsst->info.np+lsst->info.na; k++) {
+    for (k=0; k<lsst->info.np+lsst->info.np2; k++) {
       ia = lsst->info.dim * k;
       for (i=0; i<lsst->info.dim; i++)      
         fbuf[i] = lsst->sol.u[ia+i];
@@ -228,7 +228,7 @@ int saveSol(LSst *lsst) {
     }
   }
   else {
-    for (k=0; k<lsst->info.np+lsst->info.na; k++) {
+    for (k=0; k<lsst->info.np+lsst->info.np2; k++) {
       ia = lsst->info.dim * k;
       for (i=0; i<lsst->info.dim; i++)      
         dbuf[i] = lsst->sol.u[ia+i];
