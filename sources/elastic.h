@@ -13,9 +13,9 @@
 
 #include "chrono.h"
 
-#define LS_VER   "5.0a"
-#define LS_REL   "Aug. 28, 2015"
-#define LS_CPY   "Copyright (c) ICS-UPMC, 2010-"
+#define LS_VER   "5.0c"
+#define LS_REL   "Sep.2, 2015"
+#define LS_CPY   "(C) Copyright 2010-2015, ICS-SU"
 #define LS_STR   "------------------------------------------------------------"
 
 #define LS_LAMBDA     10.0e5

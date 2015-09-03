@@ -217,6 +217,27 @@ int LS_addTet(LSst *lsst,int idx,int *v,int ref) {
 }
 
 
+/* initialize solution vector or Dirichlet conditions 
+   return: 1 if completion
+           0 if no vertex array allocated
+          -1 if previous data stored in struct. */
+int LS_iniSol(LSst *lsst,double *u) {
+  if ( !lsst->info.np )  return(0);
+
+  /* no data already allocated */
+  if ( !lsst->sol.u ) {
+    lsst->sol.u  = (double*)u;
+		return(1);
+  }
+	/* resolve potential conflict */
+	else {
+		free(lsst->sol.u);
+    lsst->sol.u  = (double*)u;
+		return(-1);
+	}
+}
+
+
 /* return pointer to solution (Warning: starts at address 0) */
 double *LS_getSol(LSst *lsst) {
 	return(lsst->sol.u);

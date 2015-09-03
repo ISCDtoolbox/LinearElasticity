@@ -1,3 +1,23 @@
+/*
+ * main program file for SUlastic
+ * (C) Copyright 2010 - 2015, ICS-SU
+ *
+ * This file is part of SUlastic.
+ *
+ * Sulastic is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Sulastic is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Sulastic.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "elastic.h"
 #include "ls_calls.h"
 
@@ -180,7 +200,7 @@ static int parsop(LSst *lsst) {
     in = fopen(data,"r");
     if ( !in )  return(1);
   }
-  fprintf(stdout,"  %%%% %s OPENED\n",data);
+  if ( abs(lsst->info.imprim) > 4 )  fprintf(stdout,"  -- READING PARAMETER FILE %s\n",data);
 
   /* read parameters */
   lsst->sol.nbcl = 0;
@@ -268,6 +288,10 @@ static int parsop(LSst *lsst) {
 		lsst->sol.cltyp |= pcl->elt;
   }
 
+  if ( abs(lsst->info.imprim) > 4 ) {
+    fprintf(stdout,"  %%%% NUMBER OF PARAMETERS %8d\n",lsst->sol.nbcl);
+  }
+
   return(1);
 }
 
@@ -276,7 +300,7 @@ int main(int argc,char **argv) {
 	int      ier;
 	char     stim[32];
 
-  fprintf(stdout,"  -- ELASTIC, Release %s (%s) \n     %s\n",LS_VER,LS_REL,LS_CPY);
+  fprintf(stdout,"  -- SULASTIC, Release %s, %s\n     %s\n\n",LS_VER,LS_REL,LS_CPY);
   tminit(lsst.info.ctim,TIMEMAX);
   chrono(ON,&lsst.info.ctim[0]);
 
@@ -310,7 +334,6 @@ int main(int argc,char **argv) {
   if ( !parsar(argc,argv,&lsst) )  return(1);
 
   /* loading date */
-  if ( lsst.info.imprim )   fprintf(stdout,"\n  -- INPUT DATA\n");
   chrono(ON,&lsst.info.ctim[1]);
 
   /* loading mesh */
@@ -350,7 +373,6 @@ int main(int argc,char **argv) {
 
   /* solve */
   chrono(ON,&lsst.info.ctim[2]);
-  fprintf(stdout,"\n  %s\n   MODULE ELASTIC-LJLL : %s (%s)\n  %s\n",LS_STR,LS_VER,LS_REL,LS_STR);
   if ( lsst.info.imprim )   fprintf(stdout,"\n  -- PHASE 1 : SOLVING\n");
 
 	ier = elasti1(&lsst);
@@ -360,7 +382,6 @@ int main(int argc,char **argv) {
 		printim(lsst.info.ctim[2].gdif,stim);
     fprintf(stdout,"  -- PHASE 1 COMPLETED.     %s\n",stim);
 	}
-  fprintf(stdout,"\n  %s\n   END OF MODULE ELASTIC-LJLL \n  %s\n",LS_STR,LS_STR);
 
   /* save file */
   if ( lsst.info.imprim )  fprintf(stdout,"\n  -- WRITING DATA FILE %s\n",lsst.mesh.name);

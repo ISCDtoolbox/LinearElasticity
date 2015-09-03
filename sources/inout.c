@@ -31,7 +31,6 @@ int loadMesh(LSst *lsst) {
     fprintf(stderr,"  ** %s  NOT FOUND.\n",data);
     return(0);
   }
-  fprintf(stdout,"  %%%% %s OPENED\n",data);
 
   if ( abs(lsst->info.imprim) > 4 )  fprintf(stdout,"  -- READING DATA FILE %s\n",data);
 
@@ -164,13 +163,12 @@ int loadSol(LSst *lsst) {
   if ( !(inm = GmfOpenMesh(data, GmfRead,&ver,&dim)) ) {
     return(-1);
   }
-  fprintf(stdout,"  %%%% %s OPENED\n",data);
 
   if ( dim != lsst->info.dim )  return(-1);
   np = GmfStatKwd(inm,GmfSolAtVertices,&type,&offset,&typtab);
   if ( !np || typtab[0] != 2 || np != lsst->info.np )  return(-1);
 
-  if ( abs(lsst->info.imprim) > 3 )  fprintf(stdout,"  -- READING DATA FILE %s\n",data);
+  if ( abs(lsst->info.imprim) > 4 )  fprintf(stdout,"  -- READING DATA FILE %s\n",data);
 
   /* read mesh solutions */
   GmfGotoKwd(inm,GmfSolAtVertices);

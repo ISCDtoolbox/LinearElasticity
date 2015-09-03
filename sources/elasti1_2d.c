@@ -322,12 +322,13 @@ int elasti1_2d(LSst *lsst) {
   ier = csrPrecondGrad(A,lsst->sol.u,F,&lsst->sol.err,&lsst->sol.nit,1);
   chrono(OFF,&lsst->info.ctim[4]);
   if ( abs(lsst->info.imprim) > 0 ) {
-    if ( ier <= 0 )  
+    if ( ier <= 0 )
       fprintf(stdout,"  ## SOL NOT CONVERGED: ier= %d\n",ier);
-    else if ( abs(lsst->info.imprim) > 4 )
+    else if ( abs(lsst->info.imprim) > 4 ) {
       fprintf(stdout,"  %%%% CONVERGENCE: err= %E  nit= %d\n",lsst->sol.err,lsst->sol.nit);
-	  printim(lsst->info.ctim[4].gdif,stim);
-    fprintf(stdout,"     [Time: %s]\n",stim);
+		  printim(lsst->info.ctim[4].gdif,stim);
+      fprintf(stdout,"     [Time: %s]\n",stim);
+		}
 	}
 
   /* free memory */
