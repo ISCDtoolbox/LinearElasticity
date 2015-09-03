@@ -15,7 +15,7 @@
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with Sulastic.  If not, see <http://www.gnu.org/licenses/>.
+ * along with SUlastic.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "elastic.h"
