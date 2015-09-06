@@ -229,7 +229,7 @@ static int parsop(LSst *lsst) {
         fscanf(in,"%c",&pcl->att);
         pcl->att = tolower(pcl->att);
         if ( (pcl->typ == Dirichlet) && (pcl->att != 'v' && pcl->att != 'f') ) {
-          fprintf(stdout,"  %%%% Wrong format: %s\n",buf);
+          fprintf(stdout,"  %%%% Wrong format: %s %c\n",buf,pcl->att);
           continue;
         }
         else if ( (pcl->typ == Load) && (pcl->att != 'v' && pcl->att != 'f' && pcl->att != 'n') ) {
