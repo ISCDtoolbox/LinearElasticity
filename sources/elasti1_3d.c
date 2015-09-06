@@ -571,13 +571,11 @@ int elasti1_3d(LSst *lsst) {
 	double  *F;
 	int      ier;
 	char     stim[32];
+  const char typ[3][2] = {"P0", "P1", "P2"};
 
   /* -- Part I: matrix assembly */
   chrono(ON,&lsst->info.ctim[3]);
-  if ( abs(lsst->info.imprim) > 4 ) {
-    fprintf(stdout,"  1.1 ASSEMBLY\n");
-    fprintf(stdout,"     Assembly FE matrix\n");
-  }
+  if ( abs(lsst->info.imprim) > 4 )  fprintf(stdout,"  1.1 ASSEMBLY %s matrices\n",typ[lsst->info.typ]);
 
   /* counting P2 nodes (for dylib) */
 	if ( lsst->info.typ == P2 && !lsst->info.np2 )  lsst->info.np2 = hashar(lsst);
@@ -589,11 +587,20 @@ int elasti1_3d(LSst *lsst) {
   }
 
   /* build matrix and right-hand side */
+	if ( lsst->info.imprim > 4 ) {
+		fprintf(stdout,"     matrix A");
+		fflush(stdout);
+	}
 	if ( lsst->info.typ == P1 )
     A = matA_P1_3d(lsst);
   else
 		A = matA_P2_3d(lsst);
+	if ( lsst->info.imprim > 4 ) {
+		fprintf(stdout," updated\n     vector F");
+		fflush(stdout);
+	}
   F = rhsF_3d(lsst);
+	if ( lsst->info.imprim > 4 )  fprintf(stdout," created\n");
 
   chrono(OFF,&lsst->info.ctim[3]);
   printim(lsst->info.ctim[3].gdif,stim);
@@ -608,7 +615,7 @@ int elasti1_3d(LSst *lsst) {
   if ( lsst->info.typ == P2 )  free(lsst->hash.item);
 
   /* -- Part II: solver */
-  if ( abs(lsst->info.imprim) > 4 )  fprintf(stdout,"  1.2 SOLVING\n");
+  if ( abs(lsst->info.imprim) > 4 )  fprintf(stdout,"  1.2 SOLVING linear system\n");
   chrono(ON,&lsst->info.ctim[4]);
   ier = csrPrecondGrad(A,lsst->sol.u,F,&lsst->sol.err,&lsst->sol.nit,1);
   chrono(OFF,&lsst->info.ctim[4]);
