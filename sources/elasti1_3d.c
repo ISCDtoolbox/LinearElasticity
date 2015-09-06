@@ -3,11 +3,6 @@
 #include "sparse.h"
 
 
-typedef struct {
-	int   ib,na,nxt;
-} Edge1;
-	
-
 /* compute triangle area and unit normal in 3d */
 static double area_3d(double *a,double *b,double *c,double *n) {
   double    ux,uy,uz,vx,vy,vz,dd,dd1;
@@ -93,12 +88,12 @@ static int setTGV_3d(LSst *lsst,Hash *hash,pCsr A) {
   pCl      pcl;
 	pTria    ptt;
   pPoint   ppt;
-  int      k,ig;
+  int      k,ig,nbpt;
 	char     i;
 
   /* at vertices */
   if ( lsst->sol.cltyp & LS_ver ) {
-    for (k=1; k<=lsst->info.np; k++) {
+    for (k=1; k<=lsst->info.np+lsst->info.np2; k++) {
       ppt = &lsst->mesh.point[k];
       pcl = getCl(&lsst->sol,ppt->ref,LS_ver);
       if ( pcl && pcl->typ == Dirichlet ) {
@@ -109,15 +104,19 @@ static int setTGV_3d(LSst *lsst,Hash *hash,pCsr A) {
     }
   }
 
-  /* at elements */
+  /* at elements nodes (triangles) */
   if ( lsst->sol.cltyp & LS_tri ) {
-    for (k=1; k<=lsst->info.nt; k++) {
+    if ( lsst->info.typ == P1 )
+		  nbpt = 3;
+	  else
+		  nbpt = 6;
+		for (k=1; k<=lsst->info.nt; k++) {
       ptt = &lsst->mesh.tria[k];
       if ( !ptt->v[0] )  continue;
       pcl = getCl(&lsst->sol,ptt->ref,LS_tri);
       if ( !pcl )  continue;
       else if ( pcl->typ == Dirichlet ) {
-        for (i=0; i<3; i++) {
+        for (i=0; i<nbpt; i++) {
 					ig = ptt->v[i];
 					csrSet(A,3*(ig-1)+0,3*(ig-1)+0,LS_TGV);
 					csrSet(A,3*(ig-1)+1,3*(ig-1)+1,LS_TGV);
@@ -215,33 +214,47 @@ int assMat_P2(pTetra pt,pCsr A,double *DeD,double *im,double vol) {
   return(1);
 }
 
-static pCsr matA_P1_3d(LSst *lsst) {
+static pCsr matA_P2_3d(LSst *lsst) {
   pCsr     A;
   pTetra   pt;
-  double  *a,*b,*c,*d,DeD[81],m[9],im[9],Ae[12][12],mm[9][12],nn[9][12],Dp[3][4];
-  double   lambda,mu,vol;
-  int      i,j,k,s,ia,ja,il,ic,ig,jg,nr,nc,nbe;
+  double  *a,*b,*c,*d,DeD[81],m[9],im[9],Ae[30][30],mm[9][30],nn[9][30],Dp[3][10];
+  double   wp,lambda,mu,vol;
+  int      i,j,k,p,s,ia,ja,il,ic,ig,jg,nr,nc,nbe;
+  static double w[5]    = { -4./5., 9./20., 9./20., 9./20.,  9./20. };
+  static double q[5][3] = { {1./4.,1./4.,1./4.}, {1./2.,1./6.,1./6.}, {1./6.,1./2.,1./6.}, 
+                            {1./6.,1./6.,1./2.}, {1./6.,1./6.,1./6.} };
 
 	/* memory allocation (rough estimate) */
-	nr  = nc = 3 * lsst->info.np;
-  nbe = 20 * lsst->info.np;
+	nr  = nc = 3 * (lsst->info.np+lsst->info.np2);
+  nbe = 30 * lsst->info.np;
   A   = csrNew(nr,nc,nbe,CS_UT+CS_SYM);
 
   memset(DeD,0,81*sizeof(double));
 
-  /* Dp */
-  Dp[0][0]=1;  Dp[0][1]=0;  Dp[0][2]=0;  Dp[0][3]=-1; 
-  Dp[1][0]=0;  Dp[1][1]=1;  Dp[1][2]=0;  Dp[1][3]=-1; 
-  Dp[2][0]=0;  Dp[2][1]=0;  Dp[2][2]=1;  Dp[2][3]=-1; 
+  /* Dp for quadrature points */
+  for (p=0; p<5; p++) {
+    /* Dp */
+    Dp[0][0]=4*q[p][0]-1;  Dp[0][1]=0;            Dp[0][2]=0;            Dp[0][3]=4*(q[p][0]+q[p][1]+q[p][2])-3; 
+    Dp[1][0]=0;            Dp[1][1]=4*q[p][1]-1;  Dp[1][2]=0;            Dp[1][3]=4*(q[p][0]+q[p][1]+q[p][2])-3; 
+    Dp[2][0]=0;            Dp[2][1]=0;            Dp[2][2]=4*q[p][2]-1;  Dp[2][3]=4*(q[p][0]+q[p][1]+q[p][2])-3; 
+                           
+    Dp[0][4]=4*q[p][1];    Dp[0][5]=4*q[p][2];    Dp[0][6]=4*(1-2*q[p][0]-q[p][1]-q[p][2]); 
+    Dp[1][4]=4*q[p][0];    Dp[1][5]=0;            Dp[1][6]=-4*q[p][0]; 
+    Dp[2][4]=0;            Dp[2][5]=4*q[p][0];    Dp[2][6]=-4*q[p][0];   
+                           
+    Dp[0][7]=0;            Dp[0][8]=-4*q[p][1];                       Dp[0][9]=-4*q[p][2];
+    Dp[1][7]=4*q[p][2];    Dp[1][8]=4*(1-q[p][0]-2*q[p][1]-q[p][2]);  Dp[1][9]=-4*q[p][2];
+    Dp[2][7]=4*q[p][1];    Dp[2][8]=-4*q[p][1];                       Dp[2][9]=4*(1-q[p][0]-q[p][1]-2*q[p][2]);
+  }
 
   /* Fill stiffness matrix A */
   for (k=1; k<=lsst->info.ne; k++) {
     pt = &lsst->mesh.tetra[k];
     if ( !pt->v[0] )  continue;
 
-    /* tD E D */
+    /* tD E D (related to material properties) */
     if ( !getMat(&lsst->sol,pt->ref,&lambda,&mu) )  continue;
-    DeD[0]  = DeD[40] = DeD[80] = 2*mu + lambda;
+    DeD[0]  = DeD[40] = DeD[80] = 2.0 * mu + lambda;
     DeD[4]  = DeD[8]  = DeD[36] = DeD[44] = DeD[72] = DeD[76] = lambda;
     DeD[10] = DeD[12] = DeD[20] = DeD[24] = DeD[28] = DeD[30] = mu; 
     DeD[50] = DeD[52] = DeD[56] = DeD[60] = DeD[68] = DeD[70] = mu;
@@ -262,13 +275,139 @@ static pCsr matA_P1_3d(LSst *lsst) {
     vol = volume(a,b,c,d);
 
     /* mm = (tBt^-1) Dp */
-      /* discrete strain element e_mm  e_ij = d_ju_i + d_iu_j */
-      /* cambio integrale */
+    /* discrete strain element e_mm  e_ij = d_ju_i + d_iu_j */
+	  memset(Ae,0,30*30*sizeof(double));
+
+    /* mm = (tBt^-1) Dp */
+    memset(mm,0,9*30*sizeof(double));
+    for (i=0; i<3; i++) {
+      for (j=0; j<10; j++) {
+        for (s=0; s<3; s++) 
+          mm[i][j]   += im[i*3+s] * Dp[s][j];
+        mm[i+3][j+10] = mm[i][j];
+        mm[i+6][j+20] = mm[i][j];
+      }
+    }
+
+    /* nn = DeD mm */
+    memset(nn,0,9*30*sizeof(double));
+    for (i=0; i<9; i++) {
+      for (j=0; j<30; j++) {
+        for (s=0; s<9; s++)
+          nn[i][j] += DeD[i*9+s] * mm[s][j];
+      }
+    }
+
+	  /* loop over 5 quadrature points */
+	  for (p=0; p<5; p++) {
+	    /* Dp */
+	    Dp[0][0]=4*q[p][0]-1; Dp[0][1]=0;            Dp[0][2]=0;           Dp[0][3]=4*(q[p][0]+q[p][1]+q[p][2])-3; 
+	    Dp[1][0]=0;           Dp[1][1]=4*q[p][1]-1;  Dp[1][2]=0;           Dp[1][3]=4*(q[p][0]+q[p][1]+q[p][2])-3; 
+	    Dp[2][0]=0;           Dp[2][1]=0;            Dp[2][2]=4*q[p][2]-1; Dp[2][3]=4*(q[p][0]+q[p][1]+q[p][2])-3; 
+    
+	    Dp[0][4]=4*q[p][1];   Dp[0][5]=4*q[p][2];    Dp[0][6]=4*(1-2*q[p][0]-q[p][1]-q[p][2]); 
+	    Dp[1][4]=4*q[p][0];   Dp[1][5]=0;            Dp[1][6]=-4*q[p][0]; 
+	    Dp[2][4]=0;           Dp[2][5]=4*q[p][0];    Dp[2][6]=-4*q[p][0];   
+  
+	    Dp[0][7]=0;           Dp[0][8]=-4*q[p][1];                         Dp[0][9]=-4*q[p][2];
+	    Dp[1][7]=4*q[p][2];   Dp[1][8]=4*(1-q[p][0]-2*q[p][1]-q[p][2]);    Dp[1][9]=-4*q[p][2];
+	    Dp[2][7]=4*q[p][1];   Dp[2][8]=-4*q[p][1];                         Dp[2][9]=4*(1-q[p][0]-q[p][1]-2*q[p][2]);
+    
+	    /* Ae = vol tmm DeD mm */
+	    wp = vol * w[p];
+	    for (i=0; i<30; i++) {
+	      for (j=i; j<30; j++) {
+	        for (s=0; s<9; s++)
+	          Ae[i][j] += wp * mm[s][i] * nn[s][j];
+	      }
+	    }
+	  }
+
+	  /* stifness matrix */
+	  for (i=0; i<30; i++) {
+	    ig = pt->v[i % 10];
+	    ia = 3*(ig-1) + (i / 10);
+	    for (j=i; j<30; j++) {
+	      if ( fabs(Ae[i][j]) < EPSD )  continue;
+	      jg = pt->v[j % 10];
+	      ja = 3*(jg-1) + (j / 10);
+        if ( ia < ja ) {
+          il = ia;
+          ic = ja;
+        }
+        else {
+          il = ja;
+          ic = ia;
+        }
+				/* a(il,jl)= Ae[i][j]) */
+        csrPut(A,il,ic,Ae[i][j]);
+	    }
+	  }
+	}
+
+  /* Set large value for Dirichlet conditions */
+  setTGV_3d(lsst,0,A);
+	csrPack(A);
+	if ( abs(lsst->info.imprim) > 5 || lsst->info.ddebug )
+    fprintf(stdout,"     A: %6d x %6d  sparsity %7.4f%%\n",nr,nc,100.0*A->nbe/nr/nc);
+
+  return(A);
+}
+
+
+static pCsr matA_P1_3d(LSst *lsst) {
+  pCsr     A;
+  pTetra   pt;
+  double  *a,*b,*c,*d,DeD[81],m[9],im[9],Ae[12][12],mm[9][12],nn[9][12],Dp[3][4];
+  double   lambda,mu,vol;
+  int      i,j,k,s,ia,ja,il,ic,ig,jg,nr,nc,nbe;
+
+	/* memory allocation (rough estimate) */
+	nr  = nc = 3 * lsst->info.np;
+  nbe = 12 * lsst->info.np;
+  A   = csrNew(nr,nc,nbe,CS_UT+CS_SYM);
+
+  memset(DeD,0,81*sizeof(double));
+
+  /* Dp for quadrature points */
+  Dp[0][0]=1;  Dp[0][1]=0;  Dp[0][2]=0;  Dp[0][3]=-1; 
+  Dp[1][0]=0;  Dp[1][1]=1;  Dp[1][2]=0;  Dp[1][3]=-1; 
+  Dp[2][0]=0;  Dp[2][1]=0;  Dp[2][2]=1;  Dp[2][3]=-1; 
+
+  /* Fill stiffness matrix A */
+  for (k=1; k<=lsst->info.ne; k++) {
+    pt = &lsst->mesh.tetra[k];
+    if ( !pt->v[0] )  continue;
+
+    /* tD E D */
+    if ( !getMat(&lsst->sol,pt->ref,&lambda,&mu) )  continue;
+    DeD[0]  = DeD[40] = DeD[80] = 2.0 * mu + lambda;
+    DeD[4]  = DeD[8]  = DeD[36] = DeD[44] = DeD[72] = DeD[76] = lambda;
+    DeD[10] = DeD[12] = DeD[20] = DeD[24] = DeD[28] = DeD[30] = mu; 
+    DeD[50] = DeD[52] = DeD[56] = DeD[60] = DeD[68] = DeD[70] = mu;
+
+    /* measure of K */
+    a = &lsst->mesh.point[pt->v[0]].c[0]; 
+    b = &lsst->mesh.point[pt->v[1]].c[0]; 
+    c = &lsst->mesh.point[pt->v[2]].c[0]; 
+    d = &lsst->mesh.point[pt->v[3]].c[0]; 
+
+    /* mm = tB^-1 (Jacobian) */
+    for (i=0; i<3; i++) {
+      m[i+0] = a[i] - d[i];
+      m[i+3] = b[i] - d[i];
+      m[i+6] = c[i] - d[i];
+    }
+    if ( !invmatg(m,im) )  return(0);
+    vol = volume(a,b,c,d);
+
+    /* mm = (tBt^-1) Dp */
+    /* discrete strain element e_mm  e_ij = d_ju_i + d_iu_j */
     memset(mm,0,9*12*sizeof(double));
     for (i=0; i<3; i++) {
       for (j=0; j<4; j++) {
         for (s=0; s<3; s++)
-          mm[i][j]   += im[i*3+s] * Dp[s][j]; // inv(J)*Dp mi da la derivata
+          mm[i][j]   += im[i*3+s] * Dp[s][j]; /* inv(J)*Dp from the derivative */
         mm[i+3][j+4] = mm[i][j];
         mm[i+6][j+8] = mm[i][j];
       }
@@ -310,12 +449,13 @@ static pCsr matA_P1_3d(LSst *lsst) {
           il = ja;
           ic = ia;
         }
-        csrPut(A,il,ic,Ae[i][j]); /*Inserisci in A[il,ic] il valore Ae[i][j]*/
+				/* a(il,jl)= Ae[i][j]) */
+        csrPut(A,il,ic,Ae[i][j]);
       }
     }
   }
 
-  /* Très grand Valeur: implementa le condizioni di Dirichlet */
+  /* Set large value for Dirichlet conditions */
   setTGV_3d(lsst,0,A);
 	csrPack(A);
 	if ( abs(lsst->info.imprim) > 5 || lsst->info.ddebug )
@@ -324,18 +464,19 @@ static pCsr matA_P1_3d(LSst *lsst) {
   return(A);
 }
 
+
 /* build right hand side vector and set boundary conds. */
-static double *rhsF_P1_3d(LSst *lsst) {
+static double *rhsF_3d(LSst *lsst) {
   pTetra   pt;
 	pTria    ptt;
   pPoint   ppt;
   pCl      pcl;
-  double  *F,*vp,*v,aire,vol,n[3],w[3],*a,*b,*c,*d;
-  int      k,ig,size;
+  double  *F,*vp,aire,vol,n[3],w[3],*a,*b,*c,*d;
+  int      k,ig,nbpt,size;
   char     i;
 
   if ( abs(lsst->info.imprim) > 5 )  fprintf(stdout,"     Gravity and body forces\n");
-  size = lsst->info.dim * lsst->info.np;
+  size = lsst->info.dim * (lsst->info.np+lsst->info.np2);
   F = (double*)calloc(size,sizeof(double));
   assert(F);
 
@@ -362,7 +503,7 @@ static double *rhsF_P1_3d(LSst *lsst) {
 
   /* nodal boundary conditions */
   if ( lsst->sol.cltyp & LS_ver ) {
-    for (k=1; k<=lsst->info.np; k++) {
+    for (k=1; k<=lsst->info.np+lsst->info.np2; k++) {
       ppt = &lsst->mesh.point[k];
       pcl = getCl(&lsst->sol,ppt->ref,LS_ver);
       if ( !pcl )  continue;
@@ -381,6 +522,10 @@ static double *rhsF_P1_3d(LSst *lsst) {
     }
   }
 
+	if ( lsst->info.typ == P1 )
+		nbpt = 3;
+	else
+		nbpt = 6;
   if ( lsst->sol.cltyp & LS_tri ) {
     for (k=1; k<=lsst->info.nt; k++) {
       ptt = &lsst->mesh.tria[k];
@@ -388,24 +533,25 @@ static double *rhsF_P1_3d(LSst *lsst) {
       pcl = getCl(&lsst->sol,ptt->ref,LS_tri);
       if ( !pcl )  continue;
       else if ( pcl->typ == Dirichlet ) {
-        for (i=0; i<3; i++) {
+        for (i=0; i<nbpt; i++) {
 	        ig = ptt->v[i];
-          v = pcl->att == 'v' ? &pcl->u[0] : &lsst->sol.u[3*(ptt->v[i]-1)];
-          F[3*(ig-1)+0] = LS_TGV * v[0];
-          F[3*(ig-1)+1] = LS_TGV * v[1];
-          F[3*(ig-1)+2] = LS_TGV * v[2];
+          vp = pcl->att == 'f' ? &lsst->sol.u[3*(ptt->v[i]-1)] : &pcl->u[0];
+          F[3*(ig-1)+0] = LS_TGV * vp[0];
+          F[3*(ig-1)+1] = LS_TGV * vp[1];
+          F[3*(ig-1)+2] = LS_TGV * vp[2];
         }
       }
-      else if ( pcl->typ == Load ) { // formule de quadrature a changer eventuellement
+      else if ( pcl->typ == Load ) { 
+				/* quadrature formula: to be modified eventually */
         a = &lsst->mesh.point[ptt->v[0]].c[0];
         b = &lsst->mesh.point[ptt->v[1]].c[0];
         c = &lsst->mesh.point[ptt->v[2]].c[0];
-        aire = area_3d(a,b,c,n) / 3.0;
+        aire = area_3d(a,b,c,n) / nbpt;
 
         w[0] = pcl->u[0] * n[0];
         w[1] = pcl->u[0] * n[1];
         w[2] = pcl->u[0] * n[2];
-        for (i=0; i<3; i++) {
+        for (i=0; i<nbpt; i++) {
           ig = ptt->v[i];
           F[3*(ig-1)+0] += aire * w[0];
           F[3*(ig-1)+1] += aire * w[1];
@@ -443,19 +589,11 @@ int elasti1_3d(LSst *lsst) {
   }
 
   /* build matrix and right-hand side */
-	A = 0;
-	F = 0;
-	
-	if ( lsst->info.typ == P1 ) {
+	if ( lsst->info.typ == P1 )
     A = matA_P1_3d(lsst);
-    F = rhsF_P1_3d(lsst);
-	}
-  else { 
-	  /*
-		A = matA_P2_3d(mesh,sol);
-    F = rhsF_P2_3d(mesh,sol);
-		*/
-  }
+  else
+		A = matA_P2_3d(lsst);
+  F = rhsF_3d(lsst);
 
   chrono(OFF,&lsst->info.ctim[3]);
   printim(lsst->info.ctim[3].gdif,stim);
@@ -464,6 +602,7 @@ int elasti1_3d(LSst *lsst) {
   /* free mesh structure + boundary conditions */
   if ( lsst->info.mfree) {
 		free(lsst->mesh.tetra);
+		if ( lsst->info.nt )    free(lsst->mesh.tria);
     if ( !lsst->info.zip )  free(lsst->mesh.point);
 	}
   if ( lsst->info.typ == P2 )  free(lsst->hash.item);
