@@ -348,8 +348,6 @@ static pCsr matA_P2_3d(LSst *lsst) {
   /* Set large value for Dirichlet conditions */
   setTGV_3d(lsst,0,A);
 	csrPack(A);
-	if ( abs(lsst->info.imprim) > 5 || lsst->info.ddebug )
-    fprintf(stdout,"     A: %6d x %6d  sparsity %7.4f%%\n",nr,nc,100.0*A->nbe/nr/nc);
 
   return(A);
 }
@@ -458,8 +456,6 @@ static pCsr matA_P1_3d(LSst *lsst) {
   /* Set large value for Dirichlet conditions */
   setTGV_3d(lsst,0,A);
 	csrPack(A);
-	if ( abs(lsst->info.imprim) > 5 || lsst->info.ddebug )
-    fprintf(stdout,"     A: %6d x %6d  sparsity %7.4f%%\n",nr,nc,100.0*A->nbe/nr/nc);
 
   return(A);
 }
@@ -475,7 +471,6 @@ static double *rhsF_3d(LSst *lsst) {
   int      k,ig,nbpt,size;
   char     i;
 
-  if ( abs(lsst->info.imprim) > 5 )  fprintf(stdout,"     Gravity and body forces\n");
   size = lsst->info.dim * (lsst->info.np+lsst->info.np2);
   F = (double*)calloc(size,sizeof(double));
   assert(F);
@@ -587,20 +582,16 @@ int elasti1_3d(LSst *lsst) {
   }
 
   /* build matrix and right-hand side */
-	if ( lsst->info.imprim > 4 ) {
-		fprintf(stdout,"     matrix A");
-		fflush(stdout);
-	}
 	if ( lsst->info.typ == P1 )
     A = matA_P1_3d(lsst);
   else
 		A = matA_P2_3d(lsst);
-	if ( lsst->info.imprim > 4 ) {
-		fprintf(stdout," updated\n     vector F");
-		fflush(stdout);
-	}
+	if ( abs(lsst->info.imprim) > 4 )  fprintf(stdout,"     matrix A updated\n");
+	if ( lsst->info.ddebug )
+    fprintf(stdout,"     A: %6d x %6d  sparsity %7.4f%%\n",A->nr,A->nc,100.0*A->nbe/A->nr/A->nc);
+	
   F = rhsF_3d(lsst);
-	if ( lsst->info.imprim > 4 )  fprintf(stdout," created\n");
+	if ( abs(lsst->info.imprim) > 4 )  fprintf(stdout,"     vector F created\n");
 
   chrono(OFF,&lsst->info.ctim[3]);
   printim(lsst->info.ctim[3].gdif,stim);
