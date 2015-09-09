@@ -566,11 +566,11 @@ int elasti1_3d(LSst *lsst) {
 	double  *F;
 	int      ier;
 	char     stim[32];
-  const char typ[3][2] = {"P0", "P1", "P2"};
+  const char typ[3] = {'0', '1', '2'};
 
   /* -- Part I: matrix assembly */
   chrono(ON,&lsst->info.ctim[3]);
-  if ( abs(lsst->info.imprim) > 4 )  fprintf(stdout,"  1.1 ASSEMBLY %s matrices\n",typ[lsst->info.typ]);
+  if ( abs(lsst->info.imprim) > 4 )  fprintf(stdout,"  1.1 ASSEMBLY P%c matrices\n",typ[lsst->info.typ]);
 
   /* counting P2 nodes (for dylib) */
 	if ( lsst->info.typ == P2 && !lsst->info.np2 )  lsst->info.np2 = hashar(lsst);
