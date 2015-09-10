@@ -7,7 +7,7 @@ enum {LS_ver=1,LS_edg=2,LS_tri=4,LS_tet=8};
 
 
 /* data structure */
-struct LSst;
+typedef struct LSst  LSst;
 
 
 /* prototypes */

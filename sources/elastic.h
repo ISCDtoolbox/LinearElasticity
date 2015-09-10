@@ -103,7 +103,7 @@ typedef struct {
   hedge  *item;
 } Hash;
 
-typedef struct {
+typedef struct sLSst {
   Mesh    mesh;
 	Sol     sol;
 	Info    info;

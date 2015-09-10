@@ -49,7 +49,7 @@ LSst *LS_init(int dim,int ver,char typ) {
 /* free global data structure */
 int LS_stop(LSst *lsst) {
 	char   stim[32];
-	
+
 	/* release memory */
   free(lsst->sol.bc);
 	free(lsst->sol.cl);
