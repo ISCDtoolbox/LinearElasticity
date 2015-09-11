@@ -3,7 +3,7 @@
 
 
 /* allocate and return global structure */
-LSst *LS_init(int dim,int ver,char typ) {
+LSst *LS_init(int dim,int ver,char typ,char mfree) {
 	LSst   *lsst;
 
   /* default values */
@@ -24,16 +24,16 @@ LSst *LS_init(int dim,int ver,char typ) {
   lsst->info.ddebug = 0;
   lsst->info.zip    = 0;
   lsst->info.typ    = typ;
-  lsst->info.mfree  = 0;
+  lsst->info.mfree  = mfree;
 
   /* set function pointer */
   if ( dim == 2 ) {
-    elasti1 = elasti1_2d;
+    LS_elastic = elasti1_2d;
     hashar  = hashar_2d;
     pack    = pack_2d;
   }
   else {
-    elasti1 = elasti1_3d;
+    LS_elastic = elasti1_3d;
     hashar  = hashar_3d;
     pack    = pack_3d;
   }
@@ -99,6 +99,7 @@ int LS_setBC(LSst *lsst,int typ,int ref,char att,int elt,double *u) {
       return(0);
 		}
   }
+	lsst->sol.cl[lsst->sol.nbcl].att = att;
   lsst->sol.cl[lsst->sol.nbcl].elt = elt;
 
   if ( lsst->sol.cl[lsst->sol.nbcl].att == 'v' ) {

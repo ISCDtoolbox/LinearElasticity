@@ -7,11 +7,10 @@ enum {LS_ver=1,LS_edg=2,LS_tri=4,LS_tet=8};
 
 
 /* data structure */
-typedef struct LSst  LSst;
-
+typedef struct _LSst LSst;
 
 /* prototypes */
-LSst *LS_init(int dim, int ver, char typ);
+LSst *LS_init(int dim, int ver, char typ,char mfree);
 int   LS_stop(LSst *lsst);
 
 int   LS_mesh(LSst *lsst,int np,int na,int nt,int ne);
@@ -27,7 +26,7 @@ int   LS_setLame(LSst *lsst,int ref,double lambda,double mu);
 
 double *LS_getSol(LSst *lsst);
 
-int   (*elasti1)(LSst *lsst);
+int   (*LS_elastic)(LSst *lsst);
 int   (*pack)(LSst *lsst);
 int   (*hashar)(LSst *lsst);
 

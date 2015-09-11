@@ -12,6 +12,7 @@
 #include <ctype.h>
 
 #include "chrono.h"
+#include "ls_calls.h"
 
 #define LS_VER   "5.0c"
 #define LS_REL   "Sep.2, 2015"
@@ -103,14 +104,12 @@ typedef struct {
   hedge  *item;
 } Hash;
 
-typedef struct sLSst {
+struct _LSst{
   Mesh    mesh;
 	Sol     sol;
 	Info    info;
 	Hash    hash;
-} LSst;
-typedef LSst * pLSst;
-
+};
 
 /* prototypes */
 int  loadMesh(LSst *lsst);

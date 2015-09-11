@@ -348,12 +348,12 @@ int main(int argc,char **argv) {
 
   /* set function pointer */
   if ( lsst.info.dim == 2 ) {
-    elasti1 = elasti1_2d;
+    LS_elastic = elasti1_2d;
     hashar  = hashar_2d;
     pack    = pack_2d;
   }
   else {
-    elasti1 = elasti1_3d;
+    LS_elastic = elasti1_3d;
     hashar  = hashar_3d;
     pack    = pack_3d;
   }
@@ -381,7 +381,7 @@ int main(int argc,char **argv) {
   chrono(ON,&lsst.info.ctim[2]);
   if ( lsst.info.imprim )   fprintf(stdout,"\n  -- PHASE 1 : SOLVING\n");
 
-	ier = elasti1(&lsst);
+	ier = LS_elastic(&lsst);
 	if ( !ier )  return(1);
   chrono(OFF,&lsst.info.ctim[2]);
   if ( lsst.info.imprim ) {
