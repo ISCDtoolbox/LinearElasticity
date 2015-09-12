@@ -27,8 +27,6 @@ int   LS_setLame(LSst *lsst,int ref,double lambda,double mu);
 double *LS_getSol(LSst *lsst);
 
 int   (*LS_elastic)(LSst *lsst);
-int   (*pack)(LSst *lsst);
-int   (*hashar)(LSst *lsst);
 
 
 #endif

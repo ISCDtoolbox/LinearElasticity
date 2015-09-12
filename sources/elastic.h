@@ -122,11 +122,12 @@ int  hashar_3d(LSst *lsst);
 int  hashP2(Hash *hash,int a,int b);
 pCl  getCl(pSol sol,int ref,int elt);
 int  getMat(pSol sol,int ref,double *lambda,double *mu);
+int  elasti1_2d(LSst *lsst);
+int  elasti1_3d(LSst *lsst);
 
 /* function pointers */
-int   elasti1_2d(LSst *lsst);
-int   elasti1_3d(LSst *lsst);
-
+int  (*pack)(LSst *lsst);
+int  (*hashar)(LSst *lsst);
 
 
 #endif
