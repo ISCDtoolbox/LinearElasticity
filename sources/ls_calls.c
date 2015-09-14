@@ -86,6 +86,9 @@ int LS_setBC(LSst *lsst,int typ,int ref,char att,int elt,double *u) {
   lsst->sol.nbcl++;
 	lsst->sol.cl[lsst->sol.nbcl].typ = typ;
 	lsst->sol.cl[lsst->sol.nbcl].ref = ref;
+	lsst->sol.cl[lsst->sol.nbcl].att = att;
+  lsst->sol.cl[lsst->sol.nbcl].elt = elt;
+
   if ( lsst->sol.cl[lsst->sol.nbcl].typ == Dirichlet ) {
 	  if ( (lsst->sol.cl[lsst->sol.nbcl].att != 'v') && (lsst->sol.cl[lsst->sol.nbcl].att != 'f') ) {
       fprintf(stdout,"  %%%% Wrong format\n");
@@ -99,8 +102,6 @@ int LS_setBC(LSst *lsst,int typ,int ref,char att,int elt,double *u) {
       return(0);
 		}
   }
-	lsst->sol.cl[lsst->sol.nbcl].att = att;
-  lsst->sol.cl[lsst->sol.nbcl].elt = elt;
 
   if ( lsst->sol.cl[lsst->sol.nbcl].att == 'v' ) {
     for (i=0; i<lsst->info.dim; i++) {
