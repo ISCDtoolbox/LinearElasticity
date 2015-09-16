@@ -194,23 +194,31 @@ int LS_addTri(LSst *lsst,int idx,int *v,int ref) {
 	return(1);
 }
 
-/* return mesh header */
-void LS_headMesh(LSst *lsst,int *np,int *na,int *nt,int *ne) {
-	*np = lsst->info.np;
-	*na = lsst->info.na;
-	*nt = lsst->info.nt;
-	*ne = lsst->info.ne;
-}
-
 int LS_addTet(LSst *lsst,int idx,int *v,int ref) {
-	pTria   pt;
-	
+	pTetra   pt;
+
 	assert(idx > 0 && idx <= lsst->info.ne);
-	pt = &lsst->mesh.tria[idx];
+	pt = &lsst->mesh.tetra[idx];
 	memcpy(&pt->v[0],&v[0],4*sizeof(int));
   pt->ref = ref;
 
 	return(1);
+}
+
+/* return mesh header */
+void LS_headMesh(LSst *lsst,int *np,int *na,int *nt,int *ne) {
+  int k;
+	*np = lsst->info.np;
+	*na = lsst->info.na;
+	*nt = lsst->info.nt;
+	*ne = lsst->info.ne;
+
+	for (k=1; k<=lsst->info.np; k++)
+		printf("point %d : %f %f %f\n",k,lsst->mesh.point[k].c[0],lsst->mesh.point[k].c[1],lsst->mesh.point[k].c[2]);
+	
+	for (k=1; k<=lsst->info.ne; k++)
+		printf("point %d : %d %d %d %d\n",k,lsst->mesh.tetra[k].v[0],lsst->mesh.tetra[k].v[1],
+	  lsst->mesh.tetra[k].v[2],lsst->mesh.tetra[k].v[3]);
 }
 
 
