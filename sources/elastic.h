@@ -125,9 +125,5 @@ int  getMat(pSol sol,int ref,double *lambda,double *mu);
 int  elasti1_2d(LSst *lsst);
 int  elasti1_3d(LSst *lsst);
 
-/* function pointers */
-int  (*pack)(LSst *lsst);
-int  (*hashar)(LSst *lsst);
-
 
 #endif

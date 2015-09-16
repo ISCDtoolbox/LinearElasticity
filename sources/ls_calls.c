@@ -2,7 +2,6 @@
 #include "ls_calls.h"
 
 
-/* allocate and return global structure */
 LSst *LS_init(int dim,int ver,char typ,char mfree) {
 	LSst   *lsst;
 
@@ -25,18 +24,6 @@ LSst *LS_init(int dim,int ver,char typ,char mfree) {
   lsst->info.zip    = 0;
   lsst->info.typ    = typ;
   lsst->info.mfree  = mfree;
-
-  /* set function pointer */
-  if ( dim == 2 ) {
-    LS_elastic = elasti1_2d;
-    hashar  = hashar_2d;
-    pack    = pack_2d;
-  }
-  else {
-    LS_elastic = elasti1_3d;
-    hashar  = hashar_3d;
-    pack    = pack_3d;
-  }
 
   /* init timer */
   tminit(lsst->info.ctim,TIMEMAX);
@@ -207,12 +194,20 @@ int LS_addTri(LSst *lsst,int idx,int *v,int ref) {
 	return(1);
 }
 
+/* return mesh header */
+void LS_headMesh(LSst *lsst,int *np,int *na,int *nt,int *ne) {
+	*np = lsst->info.np;
+	*na = lsst->info.na;
+	*nt = lsst->info.nt;
+	*ne = lsst->info.ne;
+}
+
 int LS_addTet(LSst *lsst,int idx,int *v,int ref) {
 	pTria   pt;
 	
-	assert(idx > 0 && idx <= lsst->info.nt);
+	assert(idx > 0 && idx <= lsst->info.ne);
 	pt = &lsst->mesh.tria[idx];
-	memcpy(&pt->v[0],&v[0],3*sizeof(int));
+	memcpy(&pt->v[0],&v[0],4*sizeof(int));
   pt->ref = ref;
 
 	return(1);
@@ -244,3 +239,17 @@ int LS_iniSol(LSst *lsst,double *u) {
 double *LS_getSol(LSst *lsst) {
 	return(lsst->sol.u);
 }
+
+
+int LS_elastic(LSst *lsst) {
+  int   ier;
+
+  if ( lsst->info.dim == 2)
+		ier = elasti1_2d(lsst);
+	else
+		ier = elasti1_3d(lsst);
+
+	return(ier);	
+}
+
+

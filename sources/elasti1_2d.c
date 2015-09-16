@@ -281,7 +281,13 @@ int elasti1_2d(LSst *lsst) {
   }
 
   /* counting P2 nodes (for dylib) */
-	if ( lsst->info.typ == P2 && !lsst->info.np2 )  lsst->info.np2 = hashar(lsst);
+	if ( lsst->info.typ == P2 && !lsst->info.np2 ) {
+		lsst->info.np2 = hashar_2d(lsst);
+		if ( lsst->info.np2 == 0 ) {
+			fprintf(stdout," %% Error on P2 nodes\n");
+			return(0);
+		}
+	}
 
   /* allocating memory (for dylib) */
   if ( !lsst->sol.u ) {

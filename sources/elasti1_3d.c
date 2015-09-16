@@ -573,7 +573,13 @@ int elasti1_3d(LSst *lsst) {
   if ( abs(lsst->info.imprim) > 4 )  fprintf(stdout,"  1.1 ASSEMBLY P%c matrices\n",typ[lsst->info.typ]);
 
   /* counting P2 nodes (for dylib) */
-	if ( lsst->info.typ == P2 && !lsst->info.np2 )  lsst->info.np2 = hashar(lsst);
+	if ( lsst->info.typ == P2 && !lsst->info.np2 ) {
+		lsst->info.np2 = hashar_3d(lsst);
+		if ( lsst->info.np2 == 0 ) {
+			fprintf(stdout," %% Error on P2 nodes\n");
+			return(0);
+		}
+	}
 
   /* allocating memory (for dylib) */
   if ( !lsst->sol.u ) {

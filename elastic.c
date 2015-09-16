@@ -346,20 +346,9 @@ int main(int argc,char **argv) {
   ier = loadMesh(&lsst);
 	if ( ier <=0 )  return(1);
 
-  /* set function pointer */
-  if ( lsst.info.dim == 2 ) {
-    LS_elastic = elasti1_2d;
-    hashar  = hashar_2d;
-    pack    = pack_2d;
-  }
-  else {
-    LS_elastic = elasti1_3d;
-    hashar  = hashar_3d;
-    pack    = pack_3d;
-  }
-
   /* counting P2 nodes */
-	if ( lsst.info.typ == P2 )  lsst.info.np2 = hashar(&lsst);
+	if ( lsst.info.typ == P2 )  
+		lsst.info.np2 = lsst.info.dim == 2 ? hashar_2d(&lsst) : hashar_3d(&lsst);
 
   /* allocating memory */
   if ( !lsst.sol.u ) {
@@ -373,7 +362,14 @@ int main(int argc,char **argv) {
 
   /* parse parameters in file */
   if ( !parsop(&lsst) )  return(1);
-  if ( lsst.sol.nmat && !pack(&lsst) )  return(1);
+  if ( lsst.sol.nmat ) {
+    ier = lsst.info.dim == 2 ? pack_2d(&lsst) : pack_3d(&lsst);
+		if ( ier == 0 ) {
+			fprintf(stdout," %% Error in packing op.\n");
+		  return(1);
+		}
+	}	
+
 	printim(lsst.info.ctim[1].gdif,stim);
   fprintf(stdout,"  -- DATA READING COMPLETED.     %s\n",stim);
 
