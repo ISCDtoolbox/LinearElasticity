@@ -18,7 +18,7 @@ pCl getCl(pSol sol,int ref,int elt) {
 int getMat(pSol sol,int ref,double *lambda,double *mu) {
   pMat   pm;
   int    i;
-
+  
   for (i=0; i<sol->nmat; i++) {
     pm = &sol->mat[i];
     if ( pm->ref == ref ) {

@@ -375,10 +375,12 @@ static pCsr matA_P1_3d(LSst *lsst) {
   /* Fill stiffness matrix A */
   for (k=1; k<=lsst->info.ne; k++) {
     pt = &lsst->mesh.tetra[k];
+    
     if ( !pt->v[0] )  continue;
 
     /* tD E D */
     if ( !getMat(&lsst->sol,pt->ref,&lambda,&mu) )  continue;
+        
     DeD[0]  = DeD[40] = DeD[80] = 2.0 * mu + lambda;
     DeD[4]  = DeD[8]  = DeD[36] = DeD[44] = DeD[72] = DeD[76] = lambda;
     DeD[10] = DeD[12] = DeD[20] = DeD[24] = DeD[28] = DeD[30] = mu; 

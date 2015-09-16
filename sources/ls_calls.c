@@ -115,13 +115,17 @@ void LS_setGra(LSst *lsst, double *gr) {
 
 /* specify elasticity Lame coefficients */
 int LS_setLame(LSst *lsst,int ref,double lambda,double mu) {
+  pMat pm;
+  
   if ( lsst->sol.nmat == LS_MAT-1 )  return(0);
-
+  
+  pm = &lsst->sol.mat[lsst->sol.nmat];
+  pm->ref = ref;
+  pm->lambda = lambda;
+  pm->mu = mu;
+  
   lsst->sol.nmat++;
-	lsst->sol.mat[lsst->sol.nmat].ref    = ref;
-	lsst->sol.mat[lsst->sol.nmat].lambda = lambda;
-	lsst->sol.mat[lsst->sol.nmat].mu     = mu;
-
+  
   return(1);
 }
 
@@ -241,7 +245,6 @@ int LS_iniSol(LSst *lsst,double *u) {
 		return(-1);
 	}
 }
-
 
 /* return pointer to solution (Warning: starts at address 0) */
 double *LS_getSol(LSst *lsst) {
