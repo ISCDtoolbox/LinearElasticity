@@ -86,10 +86,10 @@ static int invmatg(double m[9],double mi[9]) {
 
 static int setTGV_3d(LSst *lsst,Hash *hash,pCsr A) {
   pCl      pcl;
-	pTria    ptt;
+  pTria    ptt;
   pPoint   ppt;
   int      k,ig,nbpt;
-	char     i;
+  char     i;
 
   /* at vertices */
   if ( lsst->sol.cltyp & LS_ver ) {
@@ -457,7 +457,7 @@ static pCsr matA_P1_3d(LSst *lsst) {
 
   /* Set large value for Dirichlet conditions */
   setTGV_3d(lsst,0,A);
-	csrPack(A);
+  csrPack(A);
 
   return(A);
 }
@@ -472,7 +472,7 @@ static double *rhsF_3d(LSst *lsst) {
   double  *F,*vp,aire,vol,n[3],w[3],*a,*b,*c,*d;
   int      k,ig,nbpt,size;
   char     i;
-
+  
   size = lsst->info.dim * (lsst->info.np+lsst->info.np2);
   F = (double*)calloc(size,sizeof(double));
   assert(F);
@@ -561,6 +561,81 @@ static double *rhsF_3d(LSst *lsst) {
 	return(F);
 }
 
+/** Savemesh for debugging purposes */
+int savemesh(LSst *lsst) {
+  FILE        *out;
+  Info        *info;
+  pMesh       mesh;
+  pTetra      pt;
+  pTria       ptt;
+  pPoint      p0;
+  int         k;
+  char        i,data[256];
+  
+  strcpy(data,"test.mesh");
+  mesh = &lsst->mesh;
+  info = &lsst->info;
+  out = fopen(data,"w");
+  
+  fprintf(out,"MeshVersionFormatted 1\n\nDimension\n %d\n\n",info->dim);
+  fprintf(out,"Vertices\n%d\n",info->np);
+  
+  /* Print points */
+  for(k=1; k<= info->np; k++) {
+    p0 = &mesh->point[k];
+    fprintf(out,"%f %f %f %d\n",p0->c[0],p0->c[1],p0->c[2],p0->ref);
+  }
+
+  /* Print Tetrahedra */
+  fprintf(out,"\nTetrahedra\n%d\n",info->ne);
+  
+  for(k=1; k<= info->ne; k++) {
+    pt = &mesh->tetra[k];
+    fprintf(out,"%d %d %d %d %d\n",pt->v[0],pt->v[1],pt->v[2],pt->v[3],pt->ref);
+  }
+  
+  /* Print Triangles */
+  fprintf(out,"\nTriangles\n%d\n",info->nt);
+  
+  for(k=1; k<= info->nt; k++) {
+    ptt = &mesh->tria[k];
+    fprintf(out,"%d %d %d %d\n",ptt->v[0],ptt->v[1],ptt->v[2],ptt->ref);
+  }
+  
+  fprintf(out,"\nEnd");
+  fclose(out);
+  
+  return(1);
+}
+
+/** Savesol for debugging purposes */
+int savesol(LSst *lsst) {
+  FILE        *out;
+  Info        *info;
+  pSol        sol;
+  double      *u;
+  int         k;
+  char        i,data[256];
+  
+  strcpy(data,"test.sol");
+  sol = &lsst->sol;
+  info = &lsst->info;
+  out = fopen(data,"w");
+  
+  fprintf(out,"MeshVersionFormatted 1\n\nDimension\n %d\n\n",info->dim);
+  fprintf(out,"SolAtVertices\n%d\n 1 2\n",info->np);
+  
+  /* Print points */
+  for(k=1; k<= info->np; k++) {
+    u = &sol->u[3*(k-1)];
+    fprintf(out,"%f %f %f \n",u[0],u[1],u[2]);
+  }
+  
+  fprintf(out,"\nEnd");
+  fclose(out);
+  
+  return(1);
+}
 
 /* 3d linear elasticity */
 int elasti1_3d(LSst *lsst) {
@@ -588,7 +663,10 @@ int elasti1_3d(LSst *lsst) {
     lsst->sol.u  = (double*)calloc(lsst->info.dim * (lsst->info.npi+lsst->info.np2),sizeof(double));
     assert(lsst->sol.u);
   }
-
+  
+  savemesh(lsst);
+  savesol(lsst);
+  
   /* build matrix and right-hand side */
 	if ( lsst->info.typ == P1 )
     A = matA_P1_3d(lsst);

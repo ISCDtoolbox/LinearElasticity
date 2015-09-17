@@ -11,14 +11,15 @@ LSst *LS_init(int dim,int ver,char typ,char mfree) {
 
   /* solution structure */
   memset(&lsst->sol,0,sizeof(Sol));
-	lsst->sol.cl  = (Cl*)calloc(LS_CL,sizeof(Cl));
+  lsst->sol.cl  = (Cl*)calloc(LS_CL,sizeof(Cl));
   lsst->sol.mat = (Mat*)calloc(LS_MAT,sizeof(Mat));
   lsst->sol.err = LS_RES;
   lsst->sol.nit = LS_MAXIT;
+  lsst->sol.cltyp = LS_tri;  // For the time being...
 
   /* global parameters */
   lsst->info.dim    = dim;
-	lsst->info.ver    = ver;
+  lsst->info.ver    = ver;
   lsst->info.imprim = -99;
   lsst->info.ddebug = 0;
   lsst->info.zip    = 0;
@@ -61,33 +62,30 @@ void LS_setPar(LSst *lsst,int imp,int deb,int zip) {
 }
 
 /* handle boundary conditions:
-  typ= P0, P1, P2
+  typ= Dirichlet, Load
   ref= integer
   att= char 'v', 'f', 'n'
   elt= enum LS_ver, LS_edg, LS_tri, LS_tet */
 int LS_setBC(LSst *lsst,int typ,int ref,char att,int elt,double *u) {
   int    i;
 
-	if ( lsst->sol.nbcl == LS_CL-1 )  return(0);
-
-  lsst->sol.nbcl++;
-	lsst->sol.cl[lsst->sol.nbcl].typ = typ;
-	lsst->sol.cl[lsst->sol.nbcl].ref = ref;
-	lsst->sol.cl[lsst->sol.nbcl].att = att;
+  lsst->sol.cl[lsst->sol.nbcl].typ = typ;
+  lsst->sol.cl[lsst->sol.nbcl].ref = ref;
+  lsst->sol.cl[lsst->sol.nbcl].att = att;
   lsst->sol.cl[lsst->sol.nbcl].elt = elt;
 
   if ( lsst->sol.cl[lsst->sol.nbcl].typ == Dirichlet ) {
-	  if ( (lsst->sol.cl[lsst->sol.nbcl].att != 'v') && (lsst->sol.cl[lsst->sol.nbcl].att != 'f') ) {
-      fprintf(stdout,"  %%%% Wrong format\n");
-      return(0);
-		}
-	}
+    if ( (lsst->sol.cl[lsst->sol.nbcl].att != 'v') && (lsst->sol.cl[lsst->sol.nbcl].att != 'f') ) {
+    fprintf(stdout,"  %%%% Wrong format\n");
+    return(0);
+      }
+  }
   else if ( lsst->sol.cl[lsst->sol.nbcl].typ == Load ) {
-		if ( (lsst->sol.cl[lsst->sol.nbcl].att != 'v') && (lsst->sol.cl[lsst->sol.nbcl].att != 'f') \
-		  && (lsst->sol.cl[lsst->sol.nbcl].att != 'n') ) {
+    if ( (lsst->sol.cl[lsst->sol.nbcl].att != 'v') && (lsst->sol.cl[lsst->sol.nbcl].att != 'f') \
+        && (lsst->sol.cl[lsst->sol.nbcl].att != 'n') ) {
       fprintf(stdout,"  %%%% Wrong format\n");
       return(0);
-		}
+    }
   }
 
   if ( lsst->sol.cl[lsst->sol.nbcl].att == 'v' ) {
@@ -98,8 +96,12 @@ int LS_setBC(LSst *lsst,int typ,int ref,char att,int elt,double *u) {
   else if ( lsst->sol.cl[lsst->sol.nbcl].att == 'n' ) {
     lsst->sol.cl[lsst->sol.nbcl].u[0] = u[0];
   }
+  
+  
+  if ( lsst->sol.nbcl == LS_CL-1 )  return(0);
+  lsst->sol.nbcl++;
 
-	return(1);
+  return(1);
 }
 
 
@@ -129,6 +131,19 @@ int LS_setLame(LSst *lsst,int ref,double lambda,double mu) {
   return(1);
 }
 
+/* Construct solution */
+int LS_CreaSol(LSst *lsst) {
+  
+  lsst->sol.u = (double*)calloc(lsst->info.dim * (lsst->info.np+lsst->info.np2),sizeof(double));
+  assert(lsst->sol.u);
+  return(1);
+}
+
+/* Add element u[3] to solution at ip */
+int LS_addSol(LSst *lsst,int ip,double *u) {
+  memcpy(&lsst->sol.u[3*(ip-1)],u,lsst->info.dim*sizeof(double));
+  return(1);
+}
 
 /* construct mesh */
 int LS_mesh(LSst *lsst,int np,int na,int nt,int ne) {
@@ -170,7 +185,7 @@ int LS_addVer(LSst *lsst,int idx,double *c,int ref) {
 	assert(idx > 0 && idx <= lsst->info.np);
 	ppt = &lsst->mesh.point[idx];
 	for (i=0; i<lsst->info.dim; i++)
-	  ppt->c[i] = c[i];
+    ppt->c[i] = c[i];
 	ppt->ref = ref;
 
 	return(1);
