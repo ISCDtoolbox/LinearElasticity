@@ -25,9 +25,15 @@ file(GLOB_RECURSE header_files ${SOURCES_DIR}/*.h ${COMMON_DIR}/*.h)
 add_library(Elas SHARED ${source_files})
 SET(LIBRARY_OUTPUT_PATH $ENV{HOME}/lib)
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES VERSION 5.0.a SOVERSION 5)
+
+# Install library in /usr/local or equivalent
 INSTALL(TARGETS ${PROJECT_NAME} ARCHIVE DESTINATION LIBRARY
   DESTINATION lib)
 INSTALL(FILES ${header_files} DESTINATION include/SUscElas)
+# Install library in project directory
+INSTALL(TARGETS ${PROJECT_NAME} ARCHIVE DESTINATION LIBRARY
+  DESTINATION ${CMAKE_SOURCE_DIR}/lib)
+INSTALL(FILES ${header_files} DESTINATION ${CMAKE_SOURCE_DIR}/include/SUscElas)
 
 #Build main executable
 project(main)
