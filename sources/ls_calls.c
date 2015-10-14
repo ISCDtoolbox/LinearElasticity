@@ -47,8 +47,8 @@ int LS_stop(LSst *lsst) {
 
   chrono(OFF,&lsst->info.ctim[0]);
   if ( abs(lsst->info.imprim) > 0 ) {
-	  printim(lsst->info.ctim[0].gdif,stim);
-    fprintf(stdout,"\n   ELAPSED TIME  %s\n",stim);
+      printim(lsst->info.ctim[0].gdif,stim);
+      fprintf(stdout,"\n   ELAPSED TIME  %s\n",stim);
   }
 
 	return(1);
@@ -269,6 +269,10 @@ double *LS_getSol(LSst *lsst) {
 
 int LS_elastic(LSst *lsst) {
   int   ier;
+
+  if ( abs(lsst->info.imprim) > 0 )
+      fprintf(stdout,"\n  %s\n   MODULE ELAS : %s (%s)\n  %s\n",
+	      LS_STR,LS_VER,LS_REL,LS_STR);
 
   if ( lsst->info.dim == 2)
 		ier = elasti1_2d(lsst);
