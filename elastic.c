@@ -375,7 +375,6 @@ int main(int argc,char **argv) {
 
   /* solve */
   chrono(ON,&lsst.info.ctim[2]);
-  if ( lsst.info.imprim )   fprintf(stdout,"\n  -- PHASE 1 : SOLVING\n");
 
 	ier = LS_elastic(&lsst);
 	if ( !ier )  return(1);
