@@ -135,6 +135,7 @@ int loadMesh(LSst *lsst) {
 }
 
 
+/* load initial solution */
 int loadSol(LSst *lsst) {
   float       buf[GmfMaxTyp];
   double      bufd[GmfMaxTyp];
@@ -172,7 +173,7 @@ int loadSol(LSst *lsst) {
 
   /* read mesh solutions */
   GmfGotoKwd(inm,GmfSolAtVertices);
-  if ( lsst->info.ver == GmfFloat ) {
+  if ( ver == GmfFloat ) {
     for (k=0; k<lsst->info.np; k++) {
       GmfGetLin(inm,GmfSolAtVertices,&buf);
     for (i=0; i<lsst->info.dim; i++)      
@@ -213,7 +214,7 @@ int saveSol(LSst *lsst) {
     fprintf(stderr,"  ** UNABLE TO OPEN %s\n",data);
     return(0);
   }
-  fprintf(stdout,"  %%%% %s OPENED\n",data);
+  if ( abs(lsst->info.imprim) > 0 )  fprintf(stdout,"  %%%% %s OPENED\n",data);
   type = 1;
   typtab[0] = GmfVec;
 

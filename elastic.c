@@ -218,10 +218,6 @@ static int parsop(LSst *lsst) {
         pcl = &lsst->sol.cl[i];
         if ( !strcmp(data,"load") )             pcl->typ = Load;
         else  if ( !strcmp(data,"dirichlet") )  pcl->typ = Dirichlet;
-        else {
-          fprintf(stdout,"  %%%% Unknown condition: %s\n",data);
-          continue;
-        }
 
         /* check for entity */
         fscanf(in,"%d %s ",&pcl->ref,buf);
@@ -370,6 +366,7 @@ int main(int argc,char **argv) {
 		}
 	}	
 
+	chrono(OFF,&lsst.info.ctim[1]);
 	printim(lsst.info.ctim[1].gdif,stim);
   fprintf(stdout,"  -- DATA READING COMPLETED.     %s\n",stim);
 
@@ -385,7 +382,7 @@ int main(int argc,char **argv) {
 	}
 
   /* save file */
-  if ( lsst.info.imprim )  fprintf(stdout,"\n  -- WRITING DATA FILE %s\n",lsst.mesh.name);
+  if ( lsst.info.imprim )  fprintf(stdout,"\n  -- WRITING DATA FILE %s\n",lsst.sol.nameout);
   chrono(ON,&lsst.info.ctim[1]);
   if ( lsst.info.zip && !unpack(&lsst) )  return(1);
   ier = saveSol(&lsst);
