@@ -2,14 +2,23 @@ cmake_minimum_required(VERSION 2.8)
 project(Elas)
 set(CMAKE_BUILD_TYPE "Release")
 
-SET ( COMMON_DIR common )
-SET ( SOURCES_DIR sources )
-
-include_directories(${COMMON_DIR} ${SOURCES_DIR})
+SET( SOURCES_DIR sources )
 
 #Compilation
-file(GLOB_RECURSE source_files ${SOURCES_DIR}/* ${COMMON_DIR}/*)
-file(GLOB_RECURSE header_files ${SOURCES_DIR}/*.h ${COMMON_DIR}/*.h)
+file(GLOB_RECURSE source_files ${SOURCES_DIR}/*)
+file(GLOB_RECURSE header_files ${SOURCES_DIR}/*.h)
+
+#Adds commons
+include(ExternalProject)
+ExternalProject_Add(
+  commons
+  PREFIX "./commons/"
+  GIT_REPOSITORY https://github.com/ICStoolbox/Commons.git
+  BUILD_COMMAND "make"
+  INSTALL_COMMAND ""
+  LOG_DOWNLOAD ON
+  LOG_INSTALL ON
+)
 
 #Find math and pthread libraries
 IF (NOT WIN32)
@@ -18,13 +27,21 @@ IF (NOT WIN32)
 ENDIF()
 SET( LIBRARIES "-lpthread" ${LIBRARIES})
 
+
 #Build Elasticity library
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "$ENV{HOME}/lib")
 add_library(${PROJECT_NAME} SHARED ${source_files})
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES VERSION 5.0.a SOVERSION 5)
+
+add_dependencies(${PROJECT_NAME} commons)
+
+#target_link_libraries(elastic )
+
+include_directories(build/commons/src/commons/sources)
+
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${LIBRARIES})
 
 #Build main executable
 project(main)
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY "$ENV{HOME}/bin")
-add_executable(elastic elastic.c)
-target_link_libraries(elastic Elas ${LIBRARIES})
+add_executable(elastic sources/elastic.c)
+target_link_libraries(elastic Elas ${LIBRARIES} "$ENV{HOME}/lib/libCommons.so")
