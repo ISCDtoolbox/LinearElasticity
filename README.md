@@ -1,15 +1,19 @@
 # Linear Elasticity Solver
 
-##Install
+## Install
 To download this repository, you can either click on the "Download ZIP" button, or type in a command prompt (MAC OS & Linux):
-    git clone https://github.com/ICStoolbox/LinearElasticity.git
+```
+git clone https://github.com/ICStoolbox/LinearElasticity.git
+```
 
 To compile the code and install the executable, navigate inside the directory
 where you downloaded or cloned the repository, and type in a command prompt:
-    mkdir build
-    cd build
-    cmake ..
-    make
+```
+mkdir build
+cd build
+cmake ..
+make
+```
 
 ##Usage
 Coming soon... 
