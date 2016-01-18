@@ -2,8 +2,7 @@
 #include "ls_calls.h"
 
 
-/* allocate and return global structure */
-LSst *LS_init(int dim,int ver,char typ) {
+LSst *LS_init(int dim,int ver,char typ,char mfree) {
 	LSst   *lsst;
 
   /* default values */
@@ -12,31 +11,20 @@ LSst *LS_init(int dim,int ver,char typ) {
 
   /* solution structure */
   memset(&lsst->sol,0,sizeof(Sol));
-	lsst->sol.cl  = (Cl*)calloc(LS_CL,sizeof(Cl));
+  lsst->sol.cl  = (Cl*)calloc(LS_CL,sizeof(Cl));
   lsst->sol.mat = (Mat*)calloc(LS_MAT,sizeof(Mat));
   lsst->sol.err = LS_RES;
   lsst->sol.nit = LS_MAXIT;
+  lsst->sol.cltyp = LS_tri;  // For the time being...
 
   /* global parameters */
   lsst->info.dim    = dim;
-	lsst->info.ver    = ver;
+  lsst->info.ver    = ver;
   lsst->info.imprim = -99;
   lsst->info.ddebug = 0;
   lsst->info.zip    = 0;
   lsst->info.typ    = typ;
-  lsst->info.mfree  = 0;
-
-  /* set function pointer */
-  if ( dim == 2 ) {
-    elasti1 = elasti1_2d;
-    hashar  = hashar_2d;
-    pack    = pack_2d;
-  }
-  else {
-    elasti1 = elasti1_3d;
-    hashar  = hashar_3d;
-    pack    = pack_3d;
-  }
+  lsst->info.mfree  = mfree;
 
   /* init timer */
   tminit(lsst->info.ctim,TIMEMAX);
@@ -49,7 +37,7 @@ LSst *LS_init(int dim,int ver,char typ) {
 /* free global data structure */
 int LS_stop(LSst *lsst) {
 	char   stim[32];
-	
+
 	/* release memory */
   free(lsst->sol.bc);
 	free(lsst->sol.cl);
@@ -59,8 +47,8 @@ int LS_stop(LSst *lsst) {
 
   chrono(OFF,&lsst->info.ctim[0]);
   if ( abs(lsst->info.imprim) > 0 ) {
-	  printim(lsst->info.ctim[0].gdif,stim);
-    fprintf(stdout,"\n   ELAPSED TIME  %s\n",stim);
+      printim(lsst->info.ctim[0].gdif,stim);
+      fprintf(stdout,"\n   ELAPSED TIME  %s\n",stim);
   }
 
 	return(1);
@@ -74,32 +62,31 @@ void LS_setPar(LSst *lsst,int imp,int deb,int zip) {
 }
 
 /* handle boundary conditions:
-  typ= P0, P1, P2
+  typ= Dirichlet, Load
   ref= integer
   att= char 'v', 'f', 'n'
   elt= enum LS_ver, LS_edg, LS_tri, LS_tet */
 int LS_setBC(LSst *lsst,int typ,int ref,char att,int elt,double *u) {
   int    i;
 
-	if ( lsst->sol.nbcl == LS_CL-1 )  return(0);
-
-  lsst->sol.nbcl++;
-	lsst->sol.cl[lsst->sol.nbcl].typ = typ;
-	lsst->sol.cl[lsst->sol.nbcl].ref = ref;
-  if ( lsst->sol.cl[lsst->sol.nbcl].typ == Dirichlet ) {
-	  if ( (lsst->sol.cl[lsst->sol.nbcl].att != 'v') && (lsst->sol.cl[lsst->sol.nbcl].att != 'f') ) {
-      fprintf(stdout,"  %%%% Wrong format\n");
-      return(0);
-		}
-	}
-  else if ( lsst->sol.cl[lsst->sol.nbcl].typ == Load ) {
-		if ( (lsst->sol.cl[lsst->sol.nbcl].att != 'v') && (lsst->sol.cl[lsst->sol.nbcl].att != 'f') \
-		  && (lsst->sol.cl[lsst->sol.nbcl].att != 'n') ) {
-      fprintf(stdout,"  %%%% Wrong format\n");
-      return(0);
-		}
-  }
+  lsst->sol.cl[lsst->sol.nbcl].typ = typ;
+  lsst->sol.cl[lsst->sol.nbcl].ref = ref;
+  lsst->sol.cl[lsst->sol.nbcl].att = att;
   lsst->sol.cl[lsst->sol.nbcl].elt = elt;
+
+  if ( lsst->sol.cl[lsst->sol.nbcl].typ == Dirichlet ) {
+    if ( (lsst->sol.cl[lsst->sol.nbcl].att != 'v') && (lsst->sol.cl[lsst->sol.nbcl].att != 'f') ) {
+    fprintf(stdout,"  %%%% Wrong format\n");
+    return(0);
+      }
+  }
+  else if ( lsst->sol.cl[lsst->sol.nbcl].typ == Load ) {
+    if ( (lsst->sol.cl[lsst->sol.nbcl].att != 'v') && (lsst->sol.cl[lsst->sol.nbcl].att != 'f') \
+        && (lsst->sol.cl[lsst->sol.nbcl].att != 'n') ) {
+      fprintf(stdout,"  %%%% Wrong format\n");
+      return(0);
+    }
+  }
 
   if ( lsst->sol.cl[lsst->sol.nbcl].att == 'v' ) {
     for (i=0; i<lsst->info.dim; i++) {
@@ -109,8 +96,12 @@ int LS_setBC(LSst *lsst,int typ,int ref,char att,int elt,double *u) {
   else if ( lsst->sol.cl[lsst->sol.nbcl].att == 'n' ) {
     lsst->sol.cl[lsst->sol.nbcl].u[0] = u[0];
   }
+  
+  
+  if ( lsst->sol.nbcl == LS_CL-1 )  return(0);
+  lsst->sol.nbcl++;
 
-	return(1);
+  return(1);
 }
 
 
@@ -126,16 +117,33 @@ void LS_setGra(LSst *lsst, double *gr) {
 
 /* specify elasticity Lame coefficients */
 int LS_setLame(LSst *lsst,int ref,double lambda,double mu) {
+  pMat pm;
+  
   if ( lsst->sol.nmat == LS_MAT-1 )  return(0);
-
+  
+  pm = &lsst->sol.mat[lsst->sol.nmat];
+  pm->ref = ref;
+  pm->lambda = lambda;
+  pm->mu = mu;
+  
   lsst->sol.nmat++;
-	lsst->sol.mat[lsst->sol.nmat].ref    = ref;
-	lsst->sol.mat[lsst->sol.nmat].lambda = lambda;
-	lsst->sol.mat[lsst->sol.nmat].mu     = mu;
-
+  
   return(1);
 }
 
+/* Construct solution */
+int LS_CreaSol(LSst *lsst) {
+  
+  lsst->sol.u = (double*)calloc(lsst->info.dim * (lsst->info.np+lsst->info.np2),sizeof(double));
+  assert(lsst->sol.u);
+  return(1);
+}
+
+/* Add element u[3] to solution at ip */
+int LS_addSol(LSst *lsst,int ip,double *u) {
+  memcpy(&lsst->sol.u[3*(ip-1)],u,lsst->info.dim*sizeof(double));
+  return(1);
+}
 
 /* construct mesh */
 int LS_mesh(LSst *lsst,int np,int na,int nt,int ne) {
@@ -177,7 +185,7 @@ int LS_addVer(LSst *lsst,int idx,double *c,int ref) {
 	assert(idx > 0 && idx <= lsst->info.np);
 	ppt = &lsst->mesh.point[idx];
 	for (i=0; i<lsst->info.dim; i++)
-	  ppt->c[i] = c[i];
+    ppt->c[i] = c[i];
 	ppt->ref = ref;
 
 	return(1);
@@ -206,18 +214,72 @@ int LS_addTri(LSst *lsst,int idx,int *v,int ref) {
 }
 
 int LS_addTet(LSst *lsst,int idx,int *v,int ref) {
-	pTria   pt;
-	
-	assert(idx > 0 && idx <= lsst->info.nt);
-	pt = &lsst->mesh.tria[idx];
-	memcpy(&pt->v[0],&v[0],3*sizeof(int));
+	pTetra   pt;
+
+	assert(idx > 0 && idx <= lsst->info.ne);
+	pt = &lsst->mesh.tetra[idx];
+	memcpy(&pt->v[0],&v[0],4*sizeof(int));
   pt->ref = ref;
 
 	return(1);
 }
 
+/* return mesh header */
+void LS_headMesh(LSst *lsst,int *np,int *na,int *nt,int *ne) {
+  int k;
+	*np = lsst->info.np;
+	*na = lsst->info.na;
+	*nt = lsst->info.nt;
+	*ne = lsst->info.ne;
+
+	for (k=1; k<=lsst->info.np; k++)
+		printf("point %d : %f %f %f\n",k,lsst->mesh.point[k].c[0],lsst->mesh.point[k].c[1],lsst->mesh.point[k].c[2]);
+	
+	for (k=1; k<=lsst->info.ne; k++)
+		printf("point %d : %d %d %d %d\n",k,lsst->mesh.tetra[k].v[0],lsst->mesh.tetra[k].v[1],
+	  lsst->mesh.tetra[k].v[2],lsst->mesh.tetra[k].v[3]);
+}
+
+
+/* initialize solution vector or Dirichlet conditions 
+   return: 1 if completion
+           0 if no vertex array allocated
+          -1 if previous data stored in struct. */
+int LS_iniSol(LSst *lsst,double *u) {
+  if ( !lsst->info.np )  return(0);
+
+  /* no data already allocated */
+  if ( !lsst->sol.u ) {
+    lsst->sol.u  = (double*)u;
+		return(1);
+  }
+	/* resolve potential conflict */
+	else {
+		free(lsst->sol.u);
+    lsst->sol.u  = (double*)u;
+		return(-1);
+	}
+}
 
 /* return pointer to solution (Warning: starts at address 0) */
 double *LS_getSol(LSst *lsst) {
 	return(lsst->sol.u);
 }
+
+
+int LS_elastic(LSst *lsst) {
+  int   ier;
+
+  if ( abs(lsst->info.imprim) > 0 )
+      fprintf(stdout,"\n  %s\n   MODULE ELAS : %s (%s)\n  %s\n",
+	      LS_STR,LS_VER,LS_REL,LS_STR);
+
+  if ( lsst->info.dim == 2)
+		ier = elasti1_2d(lsst);
+	else
+		ier = elasti1_3d(lsst);
+
+	return(ier);	
+}
+
+

@@ -31,7 +31,6 @@ int loadMesh(LSst *lsst) {
     fprintf(stderr,"  ** %s  NOT FOUND.\n",data);
     return(0);
   }
-  fprintf(stdout,"  %%%% %s OPENED\n",data);
 
   if ( abs(lsst->info.imprim) > 4 )  fprintf(stdout,"  -- READING DATA FILE %s\n",data);
 
@@ -136,6 +135,7 @@ int loadMesh(LSst *lsst) {
 }
 
 
+/* load initial solution */
 int loadSol(LSst *lsst) {
   float       buf[GmfMaxTyp];
   double      bufd[GmfMaxTyp];
@@ -164,17 +164,16 @@ int loadSol(LSst *lsst) {
   if ( !(inm = GmfOpenMesh(data, GmfRead,&ver,&dim)) ) {
     return(-1);
   }
-  fprintf(stdout,"  %%%% %s OPENED\n",data);
 
   if ( dim != lsst->info.dim )  return(-1);
   np = GmfStatKwd(inm,GmfSolAtVertices,&type,&offset,&typtab);
   if ( !np || typtab[0] != 2 || np != lsst->info.np )  return(-1);
 
-  if ( abs(lsst->info.imprim) > 3 )  fprintf(stdout,"  -- READING DATA FILE %s\n",data);
+  if ( abs(lsst->info.imprim) > 4 )  fprintf(stdout,"  -- READING DATA FILE %s\n",data);
 
   /* read mesh solutions */
   GmfGotoKwd(inm,GmfSolAtVertices);
-  if ( lsst->info.ver == GmfFloat ) {
+  if ( ver == GmfFloat ) {
     for (k=0; k<lsst->info.np; k++) {
       GmfGetLin(inm,GmfSolAtVertices,&buf);
     for (i=0; i<lsst->info.dim; i++)      
@@ -215,14 +214,14 @@ int saveSol(LSst *lsst) {
     fprintf(stderr,"  ** UNABLE TO OPEN %s\n",data);
     return(0);
   }
-  fprintf(stdout,"  %%%% %s OPENED\n",data);
+  if ( abs(lsst->info.imprim) > 0 )  fprintf(stdout,"  %%%% %s OPENED\n",data);
   type = 1;
   typtab[0] = GmfVec;
 
   /* write sol */
-  GmfSetKwd(inm,GmfSolAtVertices,lsst->info.np+lsst->info.na,type,typtab);
+  GmfSetKwd(inm,GmfSolAtVertices,lsst->info.np+lsst->info.np2,type,typtab);
   if ( lsst->info.ver == GmfFloat ) {
-    for (k=0; k<lsst->info.np+lsst->info.na; k++) {
+    for (k=0; k<lsst->info.np+lsst->info.np2; k++) {
       ia = lsst->info.dim * k;
       for (i=0; i<lsst->info.dim; i++)      
         fbuf[i] = lsst->sol.u[ia+i];
@@ -230,7 +229,7 @@ int saveSol(LSst *lsst) {
     }
   }
   else {
-    for (k=0; k<lsst->info.np+lsst->info.na; k++) {
+    for (k=0; k<lsst->info.np+lsst->info.np2; k++) {
       ia = lsst->info.dim * k;
       for (i=0; i<lsst->info.dim; i++)      
         dbuf[i] = lsst->sol.u[ia+i];

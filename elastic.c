@@ -1,3 +1,23 @@
+/*
+ * main program file for SUlastic
+ * (C) Copyright 2010 - 2015, ICS-SU
+ *
+ * This file is part of SUlastic.
+ *
+ * SUlastic is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * SUlastic is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with SUlastic.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "elastic.h"
 #include "ls_calls.h"
 
@@ -166,7 +186,7 @@ static int parsop(LSst *lsst) {
   Cl         *pcl;
   Mat        *pm;
   float       fp1,fp2;
-  int         i,j,ncld,ret;
+  int         i,j,ncld,npar,ret;
   char       *ptr,buf[256],data[256];
   FILE       *in;
 
@@ -180,10 +200,11 @@ static int parsop(LSst *lsst) {
     in = fopen(data,"r");
     if ( !in )  return(1);
   }
-  fprintf(stdout,"  %%%% %s OPENED\n",data);
+  if ( abs(lsst->info.imprim) > 4 )  fprintf(stdout,"  -- READING PARAMETER FILE %s\n",data);
 
   /* read parameters */
   lsst->sol.nbcl = 0;
+	npar = 0;
   while ( !feof(in) ) {
     ret = fscanf(in,"%s",data);
     if ( !ret || feof(in) )  break;
@@ -192,14 +213,11 @@ static int parsop(LSst *lsst) {
     /* check for condition type */
     if ( !strcmp(data,"dirichlet")  || !strcmp(data,"load") ) {
       fscanf(in,"%d",&ncld);
+			npar++;
       for (i=lsst->sol.nbcl; i<lsst->sol.nbcl+ncld; i++) {
         pcl = &lsst->sol.cl[i];
         if ( !strcmp(data,"load") )             pcl->typ = Load;
         else  if ( !strcmp(data,"dirichlet") )  pcl->typ = Dirichlet;
-        else {
-          fprintf(stdout,"  %%%% Unknown condition: %s\n",data);
-          continue;
-        }
 
         /* check for entity */
         fscanf(in,"%d %s ",&pcl->ref,buf);
@@ -207,7 +225,7 @@ static int parsop(LSst *lsst) {
         fscanf(in,"%c",&pcl->att);
         pcl->att = tolower(pcl->att);
         if ( (pcl->typ == Dirichlet) && (pcl->att != 'v' && pcl->att != 'f') ) {
-          fprintf(stdout,"  %%%% Wrong format: %s\n",buf);
+          fprintf(stdout,"  %%%% Wrong format: %s %c\n",buf,pcl->att);
           continue;
         }
         else if ( (pcl->typ == Load) && (pcl->att != 'v' && pcl->att != 'f' && pcl->att != 'n') ) {
@@ -233,6 +251,7 @@ static int parsop(LSst *lsst) {
     }
     /* gravity or body force */
     else if ( !strcmp(data,"gravity") ) {
+			npar++;
       lsst->info.load |= (1 << 0);
       for (j=0; j<lsst->info.dim; j++) {
         fscanf(in,"%f ",&fp1);
@@ -240,6 +259,7 @@ static int parsop(LSst *lsst) {
       }
     }
     else if ( !strcmp(data,"lame") ) {
+			npar++;
       fscanf(in,"%d",&ncld);
       assert(ncld <= LS_MAT);
       lsst->sol.nmat = ncld;
@@ -251,6 +271,7 @@ static int parsop(LSst *lsst) {
       }
     }
     else if ( !strcmp(data,"youngpoisson") ) {
+			npar++;
       fscanf(in,"%d",&ncld);
       lsst->sol.nmat = ncld;
       for (i=0; i<ncld; i++) {
@@ -268,15 +289,20 @@ static int parsop(LSst *lsst) {
 		lsst->sol.cltyp |= pcl->elt;
   }
 
+  if ( abs(lsst->info.imprim) > 4 ) {
+    fprintf(stdout,"  %%%% NUMBER OF PARAMETERS %7d\n",npar);
+  }
+
   return(1);
 }
+
 
 int main(int argc,char **argv) {
   LSst     lsst;
 	int      ier;
 	char     stim[32];
 
-  fprintf(stdout,"  -- ELASTIC, Release %s (%s) \n     %s\n",LS_VER,LS_REL,LS_CPY);
+  fprintf(stdout,"  -- SULASTIC, Release %s, %s\n     %s\n\n",LS_VER,LS_REL,LS_CPY);
   tminit(lsst.info.ctim,TIMEMAX);
   chrono(ON,&lsst.info.ctim[0]);
 
@@ -310,27 +336,15 @@ int main(int argc,char **argv) {
   if ( !parsar(argc,argv,&lsst) )  return(1);
 
   /* loading date */
-  if ( lsst.info.imprim )   fprintf(stdout,"\n  -- INPUT DATA\n");
   chrono(ON,&lsst.info.ctim[1]);
 
   /* loading mesh */
   ier = loadMesh(&lsst);
 	if ( ier <=0 )  return(1);
 
-  /* set function pointer */
-  if ( lsst.info.dim == 2 ) {
-    elasti1 = elasti1_2d;
-    hashar  = hashar_2d;
-    pack    = pack_2d;
-  }
-  else {
-    elasti1 = elasti1_3d;
-    hashar  = hashar_3d;
-    pack    = pack_3d;
-  }
-
   /* counting P2 nodes */
-	if ( lsst.info.typ == P2 )  lsst.info.np2 = hashar(&lsst);
+	if ( lsst.info.typ == P2 )  
+		lsst.info.np2 = lsst.info.dim == 2 ? hashar_2d(&lsst) : hashar_3d(&lsst);
 
   /* allocating memory */
   if ( !lsst.sol.u ) {
@@ -344,26 +358,31 @@ int main(int argc,char **argv) {
 
   /* parse parameters in file */
   if ( !parsop(&lsst) )  return(1);
-  if ( lsst.sol.nmat && !pack(&lsst) )  return(1);
+  if ( lsst.sol.nmat ) {
+    ier = lsst.info.dim == 2 ? pack_2d(&lsst) : pack_3d(&lsst);
+		if ( ier == 0 ) {
+			fprintf(stdout," %% Error in packing op.\n");
+		  return(1);
+		}
+	}	
+
+	chrono(OFF,&lsst.info.ctim[1]);
 	printim(lsst.info.ctim[1].gdif,stim);
   fprintf(stdout,"  -- DATA READING COMPLETED.     %s\n",stim);
 
   /* solve */
   chrono(ON,&lsst.info.ctim[2]);
-  fprintf(stdout,"\n  %s\n   MODULE ELASTIC-LJLL : %s (%s)\n  %s\n",LS_STR,LS_VER,LS_REL,LS_STR);
-  if ( lsst.info.imprim )   fprintf(stdout,"\n  -- PHASE 1 : SOLVING\n");
 
-	ier = elasti1(&lsst);
+	ier = LS_elastic(&lsst);
 	if ( !ier )  return(1);
   chrono(OFF,&lsst.info.ctim[2]);
   if ( lsst.info.imprim ) {
 		printim(lsst.info.ctim[2].gdif,stim);
     fprintf(stdout,"  -- PHASE 1 COMPLETED.     %s\n",stim);
 	}
-  fprintf(stdout,"\n  %s\n   END OF MODULE ELASTIC-LJLL \n  %s\n",LS_STR,LS_STR);
 
   /* save file */
-  if ( lsst.info.imprim )  fprintf(stdout,"\n  -- WRITING DATA FILE %s\n",lsst.mesh.name);
+  if ( lsst.info.imprim )  fprintf(stdout,"\n  -- WRITING DATA FILE %s\n",lsst.sol.nameout);
   chrono(ON,&lsst.info.ctim[1]);
   if ( lsst.info.zip && !unpack(&lsst) )  return(1);
   ier = saveSol(&lsst);

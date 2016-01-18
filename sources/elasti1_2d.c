@@ -1,5 +1,4 @@
 #include "elastic.h"
-#include "ls_calls.h"
 #include "sparse.h"
 
 
@@ -19,7 +18,7 @@ pCl getCl(pSol sol,int ref,int elt) {
 int getMat(pSol sol,int ref,double *lambda,double *mu) {
   pMat   pm;
   int    i;
-
+  
   for (i=0; i<sol->nmat; i++) {
     pm = &sol->mat[i];
     if ( pm->ref == ref ) {
@@ -54,7 +53,7 @@ static double length(double *a,double *b,double n[2]) {
   n[0] = -ay;
   n[1] =  ax;
   dd   = sqrt(ax*ax + ay*ay);
-  if ( dd > EPSD ) {
+  if ( dd > LS_EPSD ) {
     n[0] *= 1.0 / dd;
     n[1] *= 1.0 / dd;
   }
@@ -114,7 +113,7 @@ static pCsr matA_P1_2d(LSst *lsst) {
 
     /* m = tBT^-1 */
     det  = (b[1]-c[1])*(a[0]-c[0])-(a[1]-c[1])*(b[0]-c[0]);
-    if ( det < EPSD )  continue;
+    if ( det < LS_EPSD )  continue;
     idet = 1.0 / det;
     m[0][0] = idet*(b[1]-c[1]);    m[0][1] = idet*(c[1]-a[1]);
     m[1][0] = idet*(c[0]-b[0]);    m[1][1] = idet*(a[0]-c[0]);
@@ -151,7 +150,7 @@ static pCsr matA_P1_2d(LSst *lsst) {
       ig = pt->v[i % 3];
       ia = 2*(ig-1) + (i / 3);
       for (j=i; j<6; j++) {
-        if ( fabs(Ae[i][j]) < EPSD )  continue;
+        if ( fabs(Ae[i][j]) < LS_EPSD )  continue;
         jg = pt->v[j % 3];
         ja = 2*(jg-1) + (j / 3);
         if ( ia < ja ) {
@@ -282,7 +281,13 @@ int elasti1_2d(LSst *lsst) {
   }
 
   /* counting P2 nodes (for dylib) */
-	if ( lsst->info.typ == P2 && !lsst->info.np2 )  lsst->info.np2 = hashar(lsst);
+	if ( lsst->info.typ == P2 && !lsst->info.np2 ) {
+		lsst->info.np2 = hashar_2d(lsst);
+		if ( lsst->info.np2 == 0 ) {
+			fprintf(stdout," %% Error on P2 nodes\n");
+			return(0);
+		}
+	}
 
   /* allocating memory (for dylib) */
   if ( !lsst->sol.u ) {
@@ -321,13 +326,15 @@ int elasti1_2d(LSst *lsst) {
   chrono(ON,&lsst->info.ctim[4]);
   ier = csrPrecondGrad(A,lsst->sol.u,F,&lsst->sol.err,&lsst->sol.nit,1);
   chrono(OFF,&lsst->info.ctim[4]);
+
   if ( abs(lsst->info.imprim) > 0 ) {
-    if ( ier <= 0 )  
+    if ( ier <= 0 )
       fprintf(stdout,"  ## SOL NOT CONVERGED: ier= %d\n",ier);
-    else if ( abs(lsst->info.imprim) > 4 )
+    else if ( abs(lsst->info.imprim) > 4 ) {
       fprintf(stdout,"  %%%% CONVERGENCE: err= %E  nit= %d\n",lsst->sol.err,lsst->sol.nit);
-	  printim(lsst->info.ctim[4].gdif,stim);
-    fprintf(stdout,"     [Time: %s]\n",stim);
+		  printim(lsst->info.ctim[4].gdif,stim);
+      fprintf(stdout,"     [Time: %s]\n",stim);
+		}
 	}
 
   /* free memory */

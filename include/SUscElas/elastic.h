@@ -26,13 +26,14 @@
 #define LS_RES        1.0e-6
 #define LS_MAXIT      10000
 #define LS_TGV        1.e+30
-#define LS_EPSD       1.e-30
 
 #define LS_MAX(a,b)   ( ((a) < (b)) ? (b) : (a) )
 #define LS_MIN(a,b)   ( ((a) < (b)) ? (a) : (b) )
 
+#define EPS      1.e-6
+#define EPSD     1.e-30
 
-/* data structures */
+
 typedef struct {
   double   c[3];
   int      ref,old;
@@ -103,7 +104,7 @@ typedef struct {
   hedge  *item;
 } Hash;
 
-struct _LSst {
+struct _LSst{
   Mesh    mesh;
 	Sol     sol;
 	Info    info;
