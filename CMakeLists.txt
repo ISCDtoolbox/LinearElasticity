@@ -1,14 +1,21 @@
 cmake_minimum_required(VERSION 2.8)
-project(Elas)
 set(CMAKE_BUILD_TYPE "Release")
 
-SET( SOURCES_DIR sources )
+#Variables
+SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY "$ENV{HOME}/lib")
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY "$ENV{HOME}/bin")
+SET(ELASTIC_SOLVER_LIB             Elas)
+SET(COMMONS_LIB                    Commons)
+LINK_DIRECTORIES(                  "$ENV{HOME}/lib")
 
-#Compilation
-file(GLOB_RECURSE source_files ${SOURCES_DIR}/*)
-file(GLOB_RECURSE header_files ${SOURCES_DIR}/*.h)
+#Suffixes
+IF(APPLE)
+set_target_properties(${ELASTIC_SOLVER_LIB}  ${COMMONS_LIB} PROPERTIES SUFFIX .dylib)
+ELSEIF("${CMAKE_SYSTEM}" MATCHES "Linux")
+set_target_properties(${ELASTIC_SOLVER_LIB}  ${COMMONS_LIB} PROPERTIES SUFFIX .so)
+ENDIF()
 
-#Adds commons
+#Commons library
 include(ExternalProject)
 ExternalProject_Add(
   commons
@@ -20,28 +27,25 @@ ExternalProject_Add(
   LOG_INSTALL ON
 )
 
-#Find math and pthread libraries
-IF (NOT WIN32)
-  FIND_LIBRARY(M_LIB m)
-  SET( LIBRARIES ${M_LIB})
-ENDIF()
-SET( LIBRARIES "-lpthread" ${LIBRARIES})
+#Elasticity library
+project(${ELASTIC_SOLVER_LIB})
+file(GLOB_RECURSE source_files sources/*)
+file(GLOB_RECURSE header_files sources/*.h)
+ADD_LIBRARY(          ${ELASTIC_SOLVER_LIB} SHARED ${source_files})
+ADD_DEPENDENCIES(     ${ELASTIC_SOLVER_LIB} ${COMMONS_LIB})
+INCLUDE_DIRECTORIES(  build/commons/src/commons/sources)
 
-
-#Build Elasticity library
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "$ENV{HOME}/lib")
-add_library(${PROJECT_NAME} SHARED ${source_files})
-
-add_dependencies(${PROJECT_NAME} commons)
-
-#target_link_libraries(elastic )
-
-include_directories(build/commons/src/commons/sources)
-
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${LIBRARIES})
-
-#Build main executable
+#Executable
 project(main)
-set (CMAKE_RUNTIME_OUTPUT_DIRECTORY "$ENV{HOME}/bin")
 add_executable(elastic sources/elastic.c)
-target_link_libraries(elastic Elas ${LIBRARIES} "$ENV{HOME}/lib/libCommons.so")
+IF(APPLE)
+target_link_libraries(elastic "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libCommons.dylib" ${ELASTIC_SOLVER_LIB})
+ELSEIF("${CMAKE_SYSTEM}" MATCHES "Linux")
+target_link_libraries(elastic "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libCommons.so" ${ELASTIC_SOLVER_LIB})
+ENDIF()
+
+
+ 
+
+
+
