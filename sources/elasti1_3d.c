@@ -19,7 +19,7 @@ static double area_3d(double *a,double *b,double *c,double *n) {
   n[1] = uz*vx - ux*vz;
   n[2] = ux*vy - uy*vx;
   dd   = sqrt(n[0]*n[0] + n[1]*n[1] + n[2]*n[2]);
-  if ( dd > EPSD ) {
+  if ( dd > LS_EPSD ) {
     dd1 = 1.0 / dd;
     n[0] *= dd1;
     n[1] *= dd1;
@@ -68,7 +68,7 @@ static int invmatg(double m[9],double mi[9]) {
   bb = m[5]*m[6] - m[3]*m[8];
   cc = m[3]*m[7] - m[4]*m[6];
   det = m[0]*aa + m[1]*bb + m[2]*cc;
-  if ( fabs(det) < EPSD )  return(0);
+  if ( fabs(det) < LS_EPSD )  return(0);
   det = 1.0 / det;
 
   mi[0] = aa*det;
@@ -191,7 +191,7 @@ int assMat_P2(pTetra pt,pCsr A,double *DeD,double *im,double vol) {
     ig = pt->v[i % 10];
     ia = 3*(ig-1) + (i / 10);
     for (j=i; j<30; j++) {
-      if ( fabs(Ae[i][j]) < EPSD )  continue;
+      if ( fabs(Ae[i][j]) < LS_EPSD )  continue;
       jg = pt->v[j % 10];
       ja = 3*(jg-1) + (j / 10);
       il = LS_MIN(ia,ja);
@@ -328,7 +328,7 @@ static pCsr matA_P2_3d(LSst *lsst) {
 	    ig = pt->v[i % 10];
 	    ia = 3*(ig-1) + (i / 10);
 	    for (j=i; j<30; j++) {
-	      if ( fabs(Ae[i][j]) < EPSD )  continue;
+	      if ( fabs(Ae[i][j]) < LS_EPSD )  continue;
 	      jg = pt->v[j % 10];
 	      ja = 3*(jg-1) + (j / 10);
         if ( ia < ja ) {
@@ -438,7 +438,7 @@ static pCsr matA_P1_3d(LSst *lsst) {
       ig = pt->v[i % 4];
       ia = 3*(ig-1) + (i / 4);
       for (j=i; j<12; j++) {
-        if ( fabs(Ae[i][j]) < EPSD )  continue;
+        if ( fabs(Ae[i][j]) < LS_EPSD )  continue;
         jg = pt->v[j % 4];
         ja = 3*(jg-1) + (j / 4);
         if ( ia < ja ) {

@@ -9,7 +9,7 @@
  * Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Slastic is distributed in the hope that it will be useful,
+ * SUlastic is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
@@ -290,7 +290,7 @@ static int parsop(LSst *lsst) {
   }
 
   if ( abs(lsst->info.imprim) > 4 ) {
-    fprintf(stdout,"  %%%% NUMBER OF PARAMETERS %8d\n",npar);
+    fprintf(stdout,"  %%%% NUMBER OF PARAMETERS %7d\n",npar);
   }
 
   return(1);

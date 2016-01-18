@@ -53,7 +53,7 @@ static double length(double *a,double *b,double n[2]) {
   n[0] = -ay;
   n[1] =  ax;
   dd   = sqrt(ax*ax + ay*ay);
-  if ( dd > EPSD ) {
+  if ( dd > LS_EPSD ) {
     n[0] *= 1.0 / dd;
     n[1] *= 1.0 / dd;
   }
@@ -113,7 +113,7 @@ static pCsr matA_P1_2d(LSst *lsst) {
 
     /* m = tBT^-1 */
     det  = (b[1]-c[1])*(a[0]-c[0])-(a[1]-c[1])*(b[0]-c[0]);
-    if ( det < EPSD )  continue;
+    if ( det < LS_EPSD )  continue;
     idet = 1.0 / det;
     m[0][0] = idet*(b[1]-c[1]);    m[0][1] = idet*(c[1]-a[1]);
     m[1][0] = idet*(c[0]-b[0]);    m[1][1] = idet*(a[0]-c[0]);
@@ -150,7 +150,7 @@ static pCsr matA_P1_2d(LSst *lsst) {
       ig = pt->v[i % 3];
       ia = 2*(ig-1) + (i / 3);
       for (j=i; j<6; j++) {
-        if ( fabs(Ae[i][j]) < EPSD )  continue;
+        if ( fabs(Ae[i][j]) < LS_EPSD )  continue;
         jg = pt->v[j % 3];
         ja = 2*(jg-1) + (j / 3);
         if ( ia < ja ) {
