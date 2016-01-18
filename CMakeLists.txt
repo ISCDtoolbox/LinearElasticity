@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 set(CMAKE_BUILD_TYPE "Release")
 
 #Variables
+SET(CMAKE_CXX_FLAGS "-Wunused-result")
 SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY "$ENV{HOME}/lib")
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY "$ENV{HOME}/bin")
 SET(ELASTIC_SOLVER_LIB             Elas)
@@ -32,7 +33,7 @@ project(${ELASTIC_SOLVER_LIB})
 file(GLOB_RECURSE source_files sources/*)
 file(GLOB_RECURSE header_files sources/*.h)
 ADD_LIBRARY(          ${ELASTIC_SOLVER_LIB} SHARED ${source_files})
-ADD_DEPENDENCIES(     ${ELASTIC_SOLVER_LIB} ${COMMONS_LIB})
+ADD_DEPENDENCIES(     ${ELASTIC_SOLVER_LIB} commons)
 INCLUDE_DIRECTORIES(  build/commons/src/commons/sources)
 
 #Executable
