@@ -6,13 +6,16 @@ To download this repository, you can either click on the "Download ZIP" button, 
 git clone https://github.com/ICStoolbox/LinearElasticity.git
 ```
 
+First, you will need to install the [ICS Commons Library](https://github.com/ICStoolbox/Commons) on your system. 
+Please refer to the instructions provided on the ICS Commons Library page in order to install this library.
+
 To compile the code and install the executable, navigate inside the directory
-where you downloaded or cloned the repository, and type in a command prompt:
+where you downloaded or cloned the present repository, and type in a command prompt:
 ```
 mkdir build
 cd build
 cmake ..
-make
+make install
 ```
 
 ##Usage
@@ -21,11 +24,10 @@ Coming soon...
 ##Authors
   * Maya de Buhan (Université Paris Descartes)
   * Pascal Frey (Université Pierre et Marie Curie)
-  * Chiara Nardoni (ICS, Sorbonne Universités)
   
 ##Contributors
   * Charles Dapogny (LJK, Université J. Fourier)
-  * Jérémie Foulon (ICS, Sorbonne Universités)
+  * Chiara Nardoni (ICS, Sorbonne Universités)
 
 ##License
 This code is distributed under the GNU Lesser General Public License
