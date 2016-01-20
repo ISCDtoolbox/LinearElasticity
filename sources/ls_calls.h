@@ -32,5 +32,4 @@ int   LS_elastic(LSst *lsst);
 double *LS_getSol(LSst *lsst);
 
 
-
 #endif

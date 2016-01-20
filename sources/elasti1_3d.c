@@ -84,7 +84,7 @@ static int invmatg(double m[9],double mi[9]) {
   return(1);
 }
 
-static int setTGV_3d(LSst *lsst,Hash *hash,pCsr A) {
+static int setTGV_3d(LSst *lsst,pCsr A) {
   pCl      pcl;
   pTria    ptt;
   pPoint   ppt;
@@ -346,7 +346,7 @@ static pCsr matA_P2_3d(LSst *lsst) {
 	}
 
   /* Set large value for Dirichlet conditions */
-  setTGV_3d(lsst,0,A);
+  setTGV_3d(lsst,A);
 	csrPack(A);
 
   return(A);
@@ -455,7 +455,7 @@ static pCsr matA_P1_3d(LSst *lsst) {
   }
 
   /* Set large value for Dirichlet conditions */
-  setTGV_3d(lsst,0,A);
+  setTGV_3d(lsst,A);
   csrPack(A);
   if ( lsst->info.verb == '+' )
     fprintf(stdout,"     %dx%d matrix, %.2f sparsity\n",nr,nc,100.0*A->nbe/nr/nc);

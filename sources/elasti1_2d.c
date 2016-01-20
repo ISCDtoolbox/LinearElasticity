@@ -62,7 +62,7 @@ static double length(double *a,double *b,double n[2]) {
   return(dd);
 }
 
-static int setTGV_2d(LSst *lsst,Hash *hash,pCsr A) {
+static int setTGV_2d(LSst *lsst,pCsr A) {
 	pCl      pcl;
   pPoint   ppt;
   int      k;
@@ -100,7 +100,6 @@ static pCsr matA_P1_2d(LSst *lsst) {
   /* store values in A */
   for (k=1; k<=lsst->info.nt; k++) {
     pt = &lsst->mesh.tria[k];
-    if ( !pt->v[0] )  continue;
 
     /* tD E D */
     if ( !getMat(&lsst->sol,pt->ref,&lambda,&mu) )  continue;
@@ -168,7 +167,7 @@ static pCsr matA_P1_2d(LSst *lsst) {
     }
   }
 
-  setTGV_2d(lsst,0,A);
+  setTGV_2d(lsst,A);
   csrPack(A);
   if ( lsst->info.verb == '+' )
     fprintf(stdout,"     %dx%d matrix, %.2f sparsity\n",nr,nc,100.0*A->nbe/nr/nc);
