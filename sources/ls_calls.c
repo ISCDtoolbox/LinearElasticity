@@ -20,8 +20,7 @@ LSst *LS_init(int dim,int ver,char typ,char mfree) {
   /* global parameters */
   lsst->info.dim    = dim;
   lsst->info.ver    = ver;
-  lsst->info.imprim = -99;
-  lsst->info.ddebug = 0;
+  lsst->info.verb   = '1';
   lsst->info.zip    = 0;
   lsst->info.typ    = typ;
   lsst->info.mfree  = mfree;
@@ -46,19 +45,18 @@ int LS_stop(LSst *lsst) {
 	if ( lsst->sol.nameout ) free(lsst->sol.nameout);
 
   chrono(OFF,&lsst->info.ctim[0]);
-  if ( abs(lsst->info.imprim) > 0 ) {
-      printim(lsst->info.ctim[0].gdif,stim);
-      fprintf(stdout,"\n   ELAPSED TIME  %s\n",stim);
+  if ( lsst->info.verb != '0' ) {
+	  printim(lsst->info.ctim[0].gdif,stim);
+    fprintf(stdout,"\n ** Cumulative time: %s sec.\n",stim);
   }
 
 	return(1);
 }
 
 /* set params (facultative) */
-void LS_setPar(LSst *lsst,int imp,int deb,int zip) {
-	lsst->info.imprim = imp;
-	lsst->info.ddebug = deb;
-	lsst->info.zip    = zip;
+void LS_setPar(LSst *lsst,char verb,int zip) {
+	lsst->info.verb = verb;
+	lsst->info.zip  = zip;
 }
 
 /* handle boundary conditions:
@@ -269,10 +267,6 @@ double *LS_getSol(LSst *lsst) {
 
 int LS_elastic(LSst *lsst) {
   int   ier;
-
-  if ( abs(lsst->info.imprim) > 0 )
-      fprintf(stdout,"\n  %s\n   MODULE ELAS : %s (%s)\n  %s\n",
-	      LS_STR,LS_VER,LS_REL,LS_STR);
 
   if ( lsst->info.dim == 2)
 		ier = elasti1_2d(lsst);

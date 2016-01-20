@@ -22,17 +22,17 @@ int loadMesh(LSst *lsst) {
       *ptr = '\0';
       strcat(data,".mesh");
       if ( !(inm = GmfOpenMesh(data,GmfRead,&lsst->info.ver,&lsst->info.dim)) ) {
-        fprintf(stderr,"  ** %s  NOT FOUND.\n",data);
+        fprintf(stderr," # %s file not found.\n",data);
         return(0);
       }
     }
   }
   else if ( !(inm = GmfOpenMesh(data,GmfRead,&lsst->info.ver,&lsst->info.dim)) ) {
-    fprintf(stderr,"  ** %s  NOT FOUND.\n",data);
+    fprintf(stderr," # %s file not found.\n",data);
     return(0);
   }
 
-  if ( abs(lsst->info.imprim) > 4 )  fprintf(stdout,"  -- READING DATA FILE %s\n",data);
+  if ( lsst->info.verb != '0' )  fprintf(stdout,"    %s:",data);
 
   lsst->info.np = GmfStatKwd(inm,GmfVertices);
 	lsst->info.na = GmfStatKwd(inm,GmfEdges);
@@ -40,7 +40,7 @@ int loadMesh(LSst *lsst) {
   lsst->info.ne = GmfStatKwd(inm,GmfTetrahedra);
 
   if ( !lsst->info.np ) {
-    if ( lsst->info.imprim )  fprintf(stdout,"  ** MISSING DATA\n");
+    if ( lsst->info.verb != '0' )  fprintf(stdout,"\n # missing data\n");
     return(0);
   }
 	lsst->info.npi = lsst->info.np;
@@ -49,14 +49,14 @@ int loadMesh(LSst *lsst) {
 
   /* memory alloc */
 	dof = lsst->info.typ == P2 ? 10 : 1;  /* bound on number of nodes */
-  lsst->mesh.point = (pPoint)calloc(dof*lsst->info.np+1,sizeof(Point));
+  lsst->mesh.point = (Point*)calloc(dof*lsst->info.np+1,sizeof(Point));
   assert(lsst->mesh.point);
-  if ( lsst->info.nt ) {
-    lsst->mesh.tria  = (pTria)calloc(lsst->info.nt+1,sizeof(Tria));
+  if ( lsst->info.nt > 0 ) {
+    lsst->mesh.tria  = (Tria*)calloc(lsst->info.nt+1,sizeof(Tria));
     assert(lsst->mesh.tria);
   }
   if ( lsst->info.ne ) {
-    lsst->mesh.tetra  = (pTetra)calloc(lsst->info.ne+1,sizeof(Tetra));
+    lsst->mesh.tetra  = (Tetra*)calloc(lsst->info.ne+1,sizeof(Tetra));
     assert(lsst->mesh.tetra);
   }
 
@@ -89,12 +89,6 @@ int loadMesh(LSst *lsst) {
       pt1 = &lsst->mesh.tria[k];
       GmfGetLin(inm,GmfTriangles,&pt1->v[0],&pt1->v[1],&pt1->v[2],&pt1->ref);
     }
-
-    if ( abs(lsst->info.imprim) > 4 ) {
-      fprintf(stdout,"  %%%% NUMBER OF VERTICES  %8d\n",lsst->info.np);
-      if ( lsst->info.na )  fprintf(stdout,"  %%%% NUMBER OF EDGES     %8d\n",lsst->info.na);
-      fprintf(stdout,"  %%%% NUMBER OF TRIANGLES %8d\n",lsst->info.nt);    
-    }
   }
 	/* 3d mesh */
   else {
@@ -122,14 +116,16 @@ int loadMesh(LSst *lsst) {
       ptt = &lsst->mesh.tetra[k];
       GmfGetLin(inm,GmfTetrahedra,&ptt->v[0],&ptt->v[1],&ptt->v[2],&ptt->v[3],&ptt->ref);
     }
-
-    if ( abs(lsst->info.imprim) > 4 ) {
-      fprintf(stdout,"  %%%% NUMBER OF VERTICES   %8d\n",lsst->info.np);
-      if ( lsst->info.nt )  fprintf(stdout,"  %%%% NUMBER OF TRIANGLES  %8d\n",lsst->info.nt);
-      if ( lsst->info.ne )  fprintf(stdout,"  %%%% NUMBER OF TETRAHEDRA %8d\n",lsst->info.ne);   
-    }
   }
 	GmfCloseMesh(inm);
+
+  if ( lsst->info.verb != '0' ) {
+    fprintf(stdout," %d vertices",lsst->info.np);
+    if ( lsst->info.na )  fprintf(stdout,", %d edges",lsst->info.na);
+    if ( lsst->info.nt )  fprintf(stdout,", %d triangles",lsst->info.nt);
+    if ( lsst->info.ne )  fprintf(stdout,", %d tetrahedra",lsst->info.ne);
+    fprintf(stdout,"\n");
+  }
 
   return(1);
 }
@@ -144,32 +140,34 @@ int loadSol(LSst *lsst) {
 
 	if ( !lsst->sol.namein )  return(-1);
   strcpy(data,lsst->sol.namein);
+
+  /* remove .mesh extension */
+  ptr = strstr(data,".mesh");
+  if ( ptr )  *ptr = '\0';
+
+  /* look for data file */
   ptr = strstr(data,".sol");
-  if ( !ptr ) {
-    strcat(data,".sol");
-    if ( !(inm = GmfOpenMesh(data,GmfRead,&ver,&dim)) ) {
-      ptr = strstr(data,".sol");
+  if ( ptr ) {
+    inm = GmfOpenMesh(data,GmfRead,&ver,&dim);
+  }
+  else {
+    /* first try to read binary file */
+    strcat(data,".solb");
+    inm = GmfOpenMesh(data,GmfRead,&ver,&dim);
+    if ( !inm ) {
+      ptr  = strstr(data,".solb");
       *ptr = '\0';
-      strcat(data,".solb");
-      if ( !(inm = GmfOpenMesh(data,GmfRead,&ver,&dim)) ) {
-        fprintf(stderr,"  ** %s  NOT FOUND.\n",data);
-        return(0);
-      }
+      strcat(data,".sol");
+      inm = GmfOpenMesh(data,GmfRead,&ver,&dim);
     }
   }
-  else if ( !(inm = GmfOpenMesh(data,GmfRead,&ver,&dim)) ) {
-    fprintf(stderr,"  ** %s  NOT FOUND.\n",data);
-    return(0);
-  }
-  if ( !(inm = GmfOpenMesh(data, GmfRead,&ver,&dim)) ) {
-    return(-1);
-  }
+  if ( !inm )  return(-1);
 
   if ( dim != lsst->info.dim )  return(-1);
   np = GmfStatKwd(inm,GmfSolAtVertices,&type,&offset,&typtab);
-  if ( !np || typtab[0] != 2 || np != lsst->info.np )  return(-1);
+  if ( !np || typtab[0] != GmfVec || np != lsst->info.np )  return(-1);
 
-  if ( abs(lsst->info.imprim) > 4 )  fprintf(stdout,"  -- READING DATA FILE %s\n",data);
+  if ( lsst->info.verb != '0' )  fprintf(stdout,"    %s :",data);
 
   /* read mesh solutions */
   GmfGotoKwd(inm,GmfSolAtVertices);
@@ -189,6 +187,10 @@ int loadSol(LSst *lsst) {
   }
   GmfCloseMesh(inm);
 
+  if ( lsst->info.verb != '0' ) {
+    fprintf(stdout," %d data vectors\n",lsst->info.np);
+  }
+
   return(1);
 }
 
@@ -196,7 +198,7 @@ int loadSol(LSst *lsst) {
 int saveSol(LSst *lsst) {
   double    dbuf[GmfMaxTyp];
   float     fbuf[GmfMaxTyp];
-  int       k,ia,i,inm,type,typtab[GmfMaxTyp];
+  int       k,ia,i,outm,type,typtab[GmfMaxTyp];
   char     *ptr,data[128];
 
   strcpy(data,lsst->sol.nameout);
@@ -210,22 +212,22 @@ int saveSol(LSst *lsst) {
     if ( !ptr )  strcat(data,".sol");
   }
 
-  if ( !(inm = GmfOpenMesh(data,GmfWrite,lsst->info.ver,lsst->info.dim)) ) {
-    fprintf(stderr,"  ** UNABLE TO OPEN %s\n",data);
+  if ( !(outm = GmfOpenMesh(data,GmfWrite,lsst->info.ver,lsst->info.dim)) ) {
+    fprintf(stderr," # nable to open %s\n",data);
     return(0);
   }
-  if ( abs(lsst->info.imprim) > 0 )  fprintf(stdout,"  %%%% %s OPENED\n",data);
+  if ( lsst->info.verb != '0' )  fprintf(stdout,"    %s:",data);
   type = 1;
   typtab[0] = GmfVec;
 
   /* write sol */
-  GmfSetKwd(inm,GmfSolAtVertices,lsst->info.np+lsst->info.np2,type,typtab);
+  GmfSetKwd(outm,GmfSolAtVertices,lsst->info.np+lsst->info.np2,type,typtab);
   if ( lsst->info.ver == GmfFloat ) {
     for (k=0; k<lsst->info.np+lsst->info.np2; k++) {
       ia = lsst->info.dim * k;
       for (i=0; i<lsst->info.dim; i++)      
         fbuf[i] = lsst->sol.u[ia+i];
-      GmfSetLin(inm,GmfSolAtVertices,fbuf);
+      GmfSetLin(outm,GmfSolAtVertices,fbuf);
     }
   }
   else {
@@ -233,10 +235,12 @@ int saveSol(LSst *lsst) {
       ia = lsst->info.dim * k;
       for (i=0; i<lsst->info.dim; i++)      
         dbuf[i] = lsst->sol.u[ia+i];
-      GmfSetLin(inm,GmfSolAtVertices,dbuf);
+      GmfSetLin(outm,GmfSolAtVertices,dbuf);
     }
   }
-  GmfCloseMesh(inm);
+  GmfCloseMesh(outm);
+
+  if ( lsst->info.verb != '0' )  fprintf(stdout," %d data vectors\n",lsst->info.np+lsst->info.np2);
 
   return(1);
 }

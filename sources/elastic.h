@@ -15,8 +15,8 @@
 #include "ls_calls.h"
 
 #define LS_VER   "5.0c"
-#define LS_REL   "Sep.2, 2015"
-#define LS_CPY   "(C) Copyright 2010-2015, ICS-SU"
+#define LS_REL   "Jan.19, 2016"
+#define LS_CPY   "(C) Copyright 2006- , ICS-SU"
 #define LS_STR   "-----------------------------------------------------------"
 
 #define LS_LAMBDA     10.0e5
@@ -58,7 +58,7 @@ typedef struct {
 	int      dim,ver;
 	int      np,np2,na,nt,ne,npi,nti,nei;
   double   gravity,gr[3];
-  char     imprim,ddebug,load,typ,cg,zip,rhs,mfree;
+  char     verb,load,typ,cg,zip,rhs,mfree;
   mytime   ctim[TIMEMAX];
 } Info;
 

@@ -1,21 +1,21 @@
 /*
- * main program file for SUlastic
- * (C) Copyright 2010 - 2015, ICS-SU
+ * main program file for elastic
+ * (C) Copyright 2006 - , ICS-SU
  *
- * This file is part of SUlastic.
+ * This file is part of elastic.
  *
- * SUlastic is free software: you can redistribute it and/or modify it under
+ * elastic is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the
  * Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * SUlastic is distributed in the hope that it will be useful,
+ * elastic is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with SUlastic.  If not, see <http://www.gnu.org/licenses/>.
+ * along with elastic.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "elastic.h"
@@ -43,25 +43,12 @@ static void excfun(int sigid) {
   exit(1);
 }
 
+
 static void usage(char *prog) {
-  fprintf(stdout,"\n usage: %s [-v[n]] [-h] [opts..] filein[.mesh]\n",prog);
-
-  fprintf(stdout,"\n** Generic options :\n");
-  fprintf(stdout,"-d       Turn on debug mode\n");
-  fprintf(stdout,"-h       Print this message\n");
-  fprintf(stdout,"-v [n]   Tune level of verbosity\n");
-  fprintf(stdout,"-t n     FE type: 1 (P1), 2 (P2)\n");
-
-  fprintf(stdout,"\n**  File specifications\n");
-  fprintf(stdout,"-in  file  input triangulation\n");
-  fprintf(stdout,"-sol file  load initial solution\n");
-
-  fprintf(stdout,"\n** Parameters\n");
-  fprintf(stdout,"-err e   accuracy (default %E)\n",LS_RES);
-  fprintf(stdout,"-nit n   iterations (default %d)\n",LS_MAXIT);
-
+  fprintf(stdout,"usage: %s [+/-v | -h] [-t typ] [-e err] [-n nit] source_file[.mesh] [-s data_file[.sol]] [-o output_file[.sol]]\n",prog);
   exit(1);
 }
+
 
 static int parsar(int argc,char *argv[],LSst *lsst) {
   int      i;
@@ -69,17 +56,14 @@ static int parsar(int argc,char *argv[],LSst *lsst) {
 
   i = 1;
   while ( i < argc ) {
-    if ( *argv[i] == '-' ) {
+    if ( (*argv[i] == '-') || (*argv[i] == '+') ) {
       switch(argv[i][1]) {
       case 'h':  /* on-line help */
       case '?':
         usage(argv[0]);
         break;
-      case 'd':  /* debug */
-        lsst->info.ddebug = 1;
-        break;
       case 'e':
-        if ( !strcmp(argv[i],"-err") ) {
+        if ( !strcmp(argv[i],"-e") ) {
           ++i;
           if ( isdigit(argv[i][0]) )
             lsst->sol.err = strtod(argv[i],NULL);
@@ -88,13 +72,13 @@ static int parsar(int argc,char *argv[],LSst *lsst) {
         }
         break;
       case 'i':
-        if ( !strcmp(argv[i],"-in") ) {
+        if ( !strcmp(argv[i],"-i") ) {
           ++i;
           lsst->mesh.name = argv[i];
         }
         break;
       case 'n':
-        if ( !strcmp(argv[i],"-nit") ) {
+        if ( !strcmp(argv[i],"-n") ) {
           ++i;
           if ( i < argc && isdigit(argv[i][0]) )
             lsst->sol.nit = atoi(argv[i]);
@@ -103,7 +87,7 @@ static int parsar(int argc,char *argv[],LSst *lsst) {
         }
         break;
       case 's':
-        if ( !strcmp(argv[i],"-sol") ) {
+        if ( !strcmp(argv[i],"-s") ) {
           ++i;
           lsst->sol.namein = argv[i];
           ptr = strstr(lsst->sol.namein,".sol");
@@ -115,40 +99,36 @@ static int parsar(int argc,char *argv[],LSst *lsst) {
           if ( isdigit(argv[i][0]) )
             lsst->info.typ = atoi(argv[i]);
           else { 
-            fprintf(stderr,"Missing argument option %c\n",argv[i-1][1]);
+            fprintf(stderr,"%s: missing argument option %c\n",argv[0],argv[i-1][1]);
             usage(argv[0]);
             i--;
           }
         }
         else {
-          fprintf(stderr,"Missing argument option %c\n",argv[i-1][1]);
+          fprintf(stderr,"%s: missing argument option %c\n",argv[0],argv[i-1][1]);
           usage(argv[0]);
         }
         break;
       case 'v':
-        if ( ++i < argc ) {
-          if ( argv[i][0] == '-' || isdigit(argv[i][0]) )
-            lsst->info.imprim = atoi(argv[i]);
-          else 
-            i--;
-        }
+        if ( !strcmp(argv[i],"-v") )
+          lsst->info.verb = '0';
+        else if ( !strcmp(argv[i],"+v") )
+          lsst->info.verb = '+';
         else {
-          fprintf(stderr,"Missing argument option %c\n",argv[i-1][1]);
+          fprintf(stderr,"%s: illegal option %s\n",argv[0],argv[i]);
           usage(argv[0]);
         }
         break;
       default:
-        fprintf(stderr,"  Unrecognized option %s\n",argv[i]);
+        fprintf(stderr,"%s: illegal option %s\n",argv[0],argv[i]);
         usage(argv[0]);
       }
     }
     else {
-      if ( lsst->mesh.name == NULL ) {
+      if ( lsst->mesh.name == NULL )
         lsst->mesh.name = argv[i];
-        if ( lsst->info.imprim == -99 )  lsst->info.imprim = 5;
-      }
       else {
-        fprintf(stdout,"  Argument %s ignored\n",argv[i]);
+        fprintf(stdout,"%s: illegal option %s\n",argv[0],argv[i]);
         usage(argv[0]);
       }
     }
@@ -156,31 +136,14 @@ static int parsar(int argc,char *argv[],LSst *lsst) {
   }
 
   /* check params */
-  if ( lsst->info.imprim == -99 ) {
-    fprintf(stdout,"\n  -- PRINT (0 10(advised) -10) ?\n");
-    fflush(stdin);
-    fscanf(stdin,"%d",&i);
-    lsst->info.imprim = i;
-  }
-
   if ( lsst->mesh.name == NULL ) {
-    lsst->mesh.name = (char *)calloc(128,sizeof(char));
-    assert(lsst->mesh.name);
-    fprintf(stdout,"  -- MESH BASENAME ?\n");
-    fflush(stdin);
-    fscanf(stdin,"%s",lsst->mesh.name);
-  }
-  if ( !lsst->sol.nameout ) {
-    lsst->sol.nameout = (char *)calloc(128,sizeof(char));
-    assert(lsst->sol.nameout);
-    strcpy(lsst->sol.nameout,lsst->mesh.name);
-    ptr = strstr(lsst->sol.nameout,".mesh");
-    if ( ptr ) *ptr = '\0';
-    strcat(lsst->sol.nameout,".sol");
+    fprintf(stderr,"%s: missing argument\n",argv[0]);
+    usage(argv[0]);
   }
 
   return(1);
 }
+
 
 static int parsop(LSst *lsst) {
   Cl         *pcl;
@@ -200,7 +163,7 @@ static int parsop(LSst *lsst) {
     in = fopen(data,"r");
     if ( !in )  return(1);
   }
-  if ( abs(lsst->info.imprim) > 4 )  fprintf(stdout,"  -- READING PARAMETER FILE %s\n",data);
+  if ( lsst->info.verb != '0' )  fprintf(stdout,"    %s:",data);
 
   /* read parameters */
   lsst->sol.nbcl = 0;
@@ -289,8 +252,8 @@ static int parsop(LSst *lsst) {
 		lsst->sol.cltyp |= pcl->elt;
   }
 
-  if ( abs(lsst->info.imprim) > 4 ) {
-    fprintf(stdout,"  %%%% NUMBER OF PARAMETERS %7d\n",npar);
+  if ( npar > 0 && lsst->info.verb != '0' ) {
+    fprintf(stdout," %d parameters\n",npar);
   }
 
   return(1);
@@ -302,7 +265,6 @@ int main(int argc,char **argv) {
 	int      ier;
 	char     stim[32];
 
-  fprintf(stdout,"  -- SULASTIC, Release %s, %s\n     %s\n\n",LS_VER,LS_REL,LS_CPY);
   tminit(lsst.info.ctim,TIMEMAX);
   chrono(ON,&lsst.info.ctim[0]);
 
@@ -326,8 +288,7 @@ int main(int argc,char **argv) {
   /* global parameters */
   lsst.info.dim    = 3;
 	lsst.info.ver    = 1;
-  lsst.info.imprim = -99;
-  lsst.info.ddebug = 0;
+  lsst.info.verb   = '1';
   lsst.info.zip    = 0;
   lsst.info.typ    = P1;
   lsst.info.mfree  = 1;
@@ -337,6 +298,14 @@ int main(int argc,char **argv) {
 
   /* loading date */
   chrono(ON,&lsst.info.ctim[1]);
+
+  if ( lsst.info.verb != '0' ) {
+    fprintf(stdout," - ELASTIC, Release %s, %s\n   %s\n\n",LS_VER,LS_REL,LS_CPY);
+    fprintf(stdout," - LOADING DATA\n");
+  }
+
+  /* parse parameters in file */
+  if ( !parsop(&lsst) )  return(1);
 
   /* loading mesh */
   ier = loadMesh(&lsst);
@@ -353,50 +322,63 @@ int main(int argc,char **argv) {
   }
 
   /* loading solution (or Dirichlet values) */
-  ier = loadSol(&lsst);
-  if ( !ier )  return(1);
+  if ( lsst.sol.namein ) {
+    ier = loadSol(&lsst);
+    if ( !ier )  return(1);
+  }
 
-  /* parse parameters in file */
-  if ( !parsop(&lsst) )  return(1);
+  /* packing mesh if needed */
   if ( lsst.sol.nmat ) {
     ier = lsst.info.dim == 2 ? pack_2d(&lsst) : pack_3d(&lsst);
 		if ( ier == 0 ) {
-			fprintf(stdout," %% Error in packing op.\n");
+			if ( lsst.info.verb != '0' )  fprintf(stdout," # Packing error.\n");
 		  return(1);
 		}
-	}	
+	}
 
 	chrono(OFF,&lsst.info.ctim[1]);
 	printim(lsst.info.ctim[1].gdif,stim);
-  fprintf(stdout,"  -- DATA READING COMPLETED.     %s\n",stim);
+  if ( lsst.info.verb != '0' )  fprintf(stdout," - COMPLETED: %s\n",stim);
 
   /* solve */
   chrono(ON,&lsst.info.ctim[2]);
+  if ( lsst.info.verb != '0' )
+    fprintf(stdout,"\n ** MODULE ELASTIC: %s\n",LS_VER);
 
 	ier = LS_elastic(&lsst);
 	if ( !ier )  return(1);
   chrono(OFF,&lsst.info.ctim[2]);
-  if ( lsst.info.imprim ) {
+  if ( lsst.info.verb != '0' ) {
 		printim(lsst.info.ctim[2].gdif,stim);
-    fprintf(stdout,"  -- PHASE 1 COMPLETED.     %s\n",stim);
+    fprintf(stdout," ** COMPLETED: %s\n\n",stim);
 	}
 
   /* save file */
-  if ( lsst.info.imprim )  fprintf(stdout,"\n  -- WRITING DATA FILE %s\n",lsst.sol.nameout);
-  chrono(ON,&lsst.info.ctim[1]);
+  if ( lsst.info.verb != '0' )  fprintf(stdout," - WRITING DATA\n");
+  chrono(ON,&lsst.info.ctim[3]);
   if ( lsst.info.zip && !unpack(&lsst) )  return(1);
+
+  if ( !lsst.sol.nameout ) {
+    lsst.sol.nameout = (char *)calloc(128,sizeof(char));
+    assert(lsst.sol.nameout);
+    strcpy(lsst.sol.nameout,lsst.mesh.name);
+  }
+
   ier = saveSol(&lsst);
 	if ( !ier )   return(1);
-  chrono(OFF,&lsst.info.ctim[1]);
-  if ( lsst.info.imprim )  fprintf(stdout,"  -- WRITING COMPLETED\n");
+  chrono(OFF,&lsst.info.ctim[3]);
+  if ( lsst.info.verb != '0' ) {
+    printim(lsst.info.ctim[3].gdif,stim);
+    fprintf(stdout," - COMPLETED: %s\n",stim);
+  }
 
   /* free mem */
 	free(lsst.sol.u);
 
   chrono(OFF,&lsst.info.ctim[0]);
-  if ( lsst.info.imprim > 0 ) {
+  if ( lsst.info.verb != '0' ) {
 	  printim(lsst.info.ctim[0].gdif,stim);
-    fprintf(stdout,"\n   ELAPSED TIME  %s\n",stim);
+    fprintf(stdout,"\n ** Cumulative time: %s.\n",stim);
   }
 
   return(0);

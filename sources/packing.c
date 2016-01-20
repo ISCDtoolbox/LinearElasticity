@@ -20,7 +20,10 @@ int pack_3d(LSst *lsst) {
   if ( nf == lsst->info.ne )  return(-1);
 
   /* store permutations */
-  if ( abs(lsst->info.imprim) > 4 )  fprintf(stdout,"\n  ** Compressing mesh..\n");
+  if ( lsst->info.verb != '0' ) {
+    fprintf(stdout,"    Compressing mesh: ");
+    fflush(stdout);
+  }
   lsst->info.zip = 1;
   perm = (int*)calloc(lsst->info.np+1,sizeof(int));
   assert(perm);
@@ -80,10 +83,12 @@ int pack_3d(LSst *lsst) {
 			lsst->sol.u[3*(k-1)+2] = lsst->sol.u[3*(perm[k]-1)+2];
 		}
   }
-  if ( abs(lsst->info.imprim) > 4 ) {
-    fprintf(stdout,"  %%%% NUMBER OF ACTIVE VERTICES   %8d\n",lsst->info.np);
-    if ( lsst->info.nt )  fprintf(stdout,"  %%%% NUMBER OF ACTIVE TRIANGLES  %8d\n",lsst->info.nt);
-    fprintf(stdout,"  %%%% NUMBER OF ACTIVE TETRAHEDRA %8d\n",lsst->info.ne);    
+  if ( lsst->info.verb != '0' ) {
+    fprintf(stdout,"%d vertices",lsst->info.np);
+    if ( lsst->info.na )  fprintf(stdout,", %d edges",lsst->info.na);
+    if ( lsst->info.nt )  fprintf(stdout,", %d triangles",lsst->info.nt);
+    if ( lsst->info.ne )  fprintf(stdout,", %d tetrahedra",lsst->info.ne);
+    fprintf(stdout,"\n");
   }
   free(perm);
 
@@ -108,7 +113,10 @@ int pack_2d(LSst *lsst) {
   if ( nf == lsst->info.nt )  return(-1);
 
   /* store permutations */
-  if ( abs(lsst->info.imprim) > 4 )  fprintf(stdout,"\n  ** Compressing mesh..\n");
+  if ( lsst->info.verb != '0' ) {
+    fprintf(stdout,"    Compressing mesh: ");
+    fflush(stdout);
+  }
   lsst->info.zip = 1;
   perm = (int*)calloc(lsst->info.np+1,sizeof(int));
   assert(perm);
@@ -166,10 +174,11 @@ int pack_2d(LSst *lsst) {
 		}
   }
 
-  if ( abs(lsst->info.imprim) > 4 ) {
-    fprintf(stdout,"  %%%% NUMBER OF ACTIVE VERTICES  %8d\n",lsst->info.np);
-    if ( lsst->info.na )  fprintf(stdout,"  %%%% NUMBER OF ACTIVE EDGES     %8d\n",lsst->info.na);
-    fprintf(stdout,"  %%%% NUMBER OF ACTIVE TRIANGLES %8d\n",lsst->info.nt);    
+  if ( lsst->info.verb != '0' ) {
+    fprintf(stdout,"%d vertices",lsst->info.np);
+    if ( lsst->info.na )  fprintf(stdout,", %d edges",lsst->info.na);
+    if ( lsst->info.nt )  fprintf(stdout,", %d triangles",lsst->info.nt);
+    fprintf(stdout,"\n");
   }
   free(perm);
 
@@ -184,7 +193,10 @@ int unpack(LSst *lsst) {
   int     k;
 	char    i;
 
-  if ( abs(lsst->info.imprim) >  4 )  fprintf(stdout,"  ** Uncompressing solution..\n");
+  if ( lsst->info.verb != '0' ) {
+    fprintf(stdout,"    Uncompressing data: ");
+    fflush(stdout);
+  }
 	unew = (double*)calloc(lsst->info.dim * (lsst->info.npi+lsst->info.np2),sizeof(double));
 	assert(unew);
 
@@ -200,6 +212,9 @@ int unpack(LSst *lsst) {
   lsst->info.np = lsst->info.npi;
   lsst->info.na = 0;
 
+  if ( lsst->info.verb != '0' ) {
+    fprintf(stdout,"%d data vectors\n",lsst->info.np);
+  }
   return(1);
 }
 

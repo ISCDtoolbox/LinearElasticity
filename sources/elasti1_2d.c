@@ -168,8 +168,8 @@ static pCsr matA_P1_2d(LSst *lsst) {
 
   setTGV_2d(lsst,0,A);
   csrPack(A);
-  if ( abs(lsst->info.imprim) > 5 || lsst->info.ddebug )
-    fprintf(stdout,"     A: %6d x %6d  sparsity %7.4f%%\n",nr,nc,100.0*A->nbe/nr/nc);
+  if ( lsst->info.verb == '+' )
+    fprintf(stdout,"     %dx%d matrix, %.2f sparsity\n",nr,nc,100.0*A->nbe/nr/nc);
 
   return(A);
 }
@@ -184,7 +184,7 @@ static double *rhsF_P1_2d(LSst *lsst) {
   int      k,ig,size;
   char     i;
 
-  if ( abs(lsst->info.imprim) > 5 )  fprintf(stdout,"     Gravity and body forces\n");
+  if ( lsst->info.verb == '+' )  fprintf(stdout,"     gravity and body forces\n");
   size = lsst->info.dim * lsst->info.np;
   F = (double*)calloc(size,sizeof(double));
   assert(F);
@@ -274,17 +274,13 @@ int elasti1_2d(LSst *lsst) {
   char     stim[32];
 
   /* -- Part I: matrix assembly */
-  chrono(ON,&lsst->info.ctim[3]);
-  if ( abs(lsst->info.imprim) > 4 ) {
-    fprintf(stdout,"  1.1 ASSEMBLY\n");
-    fprintf(stdout,"     Assembly FE matrix\n");
-  }
+  if ( lsst->info.verb != '0' )  fprintf(stdout,"    Matrix and right-hand side assembly\n");
 
   /* counting P2 nodes (for dylib) */
 	if ( lsst->info.typ == P2 && !lsst->info.np2 ) {
 		lsst->info.np2 = hashar_2d(lsst);
 		if ( lsst->info.np2 == 0 ) {
-			fprintf(stdout," %% Error on P2 nodes\n");
+			fprintf(stdout," # Error on P2 nodes.\n");
 			return(0);
 		}
 	}
@@ -310,10 +306,6 @@ int elasti1_2d(LSst *lsst) {
 		*/
   }
 
-  chrono(OFF,&lsst->info.ctim[3]);
-  printim(lsst->info.ctim[3].gdif,stim);
-  if ( abs(lsst->info.imprim) > 4 )  fprintf(stdout,"     [Time: %s]\n",stim);
-
   /* free mesh structure + boundary conditions */
   if ( lsst->info.mfree ) {
 		free(lsst->mesh.tria);
@@ -322,20 +314,17 @@ int elasti1_2d(LSst *lsst) {
   if ( lsst->info.typ == P2 )  free(lsst->hash.item);
 
   /* -- Part II: solver */
-  if ( abs(lsst->info.imprim) > 4 )  fprintf(stdout,"  1.2 SOLVING\n");
-  chrono(ON,&lsst->info.ctim[4]);
-  ier = csrPrecondGrad(A,lsst->sol.u,F,&lsst->sol.err,&lsst->sol.nit,1);
-  chrono(OFF,&lsst->info.ctim[4]);
-
-  if ( abs(lsst->info.imprim) > 0 ) {
+  if ( lsst->info.verb != '0' ) {
+    fprintf(stdout,"    Solving linear system:");  fflush(stdout);
+    ier = csrPrecondGrad(A,lsst->sol.u,F,&lsst->sol.err,&lsst->sol.nit,1);
     if ( ier <= 0 )
-      fprintf(stdout,"  ## SOL NOT CONVERGED: ier= %d\n",ier);
-    else if ( abs(lsst->info.imprim) > 4 ) {
-      fprintf(stdout,"  %%%% CONVERGENCE: err= %E  nit= %d\n",lsst->sol.err,lsst->sol.nit);
-		  printim(lsst->info.ctim[4].gdif,stim);
-      fprintf(stdout,"     [Time: %s]\n",stim);
-		}
+      fprintf(stdout,"\n # convergence problem: %d\n",ier);
+    else
+      fprintf(stdout," %E in %d iterations\n",lsst->sol.err,lsst->sol.nit);
 	}
+  else {
+    ier = csrPrecondGrad(A,lsst->sol.u,F,&lsst->sol.err,&lsst->sol.nit,1);
+  }
 
   /* free memory */
   csrFree(A);

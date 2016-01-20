@@ -561,81 +561,6 @@ static double *rhsF_3d(LSst *lsst) {
 	return(F);
 }
 
-/** Savemesh for debugging purposes */
-int savemesh(LSst *lsst) {
-  FILE        *out;
-  Info        *info;
-  pMesh       mesh;
-  pTetra      pt;
-  pTria       ptt;
-  pPoint      p0;
-  int         k;
-  char        i,data[256];
-  
-  strcpy(data,"test.mesh");
-  mesh = &lsst->mesh;
-  info = &lsst->info;
-  out = fopen(data,"w");
-  
-  fprintf(out,"MeshVersionFormatted 1\n\nDimension\n %d\n\n",info->dim);
-  fprintf(out,"Vertices\n%d\n",info->np);
-  
-  /* Print points */
-  for(k=1; k<= info->np; k++) {
-    p0 = &mesh->point[k];
-    fprintf(out,"%f %f %f %d\n",p0->c[0],p0->c[1],p0->c[2],p0->ref);
-  }
-
-  /* Print Tetrahedra */
-  fprintf(out,"\nTetrahedra\n%d\n",info->ne);
-  
-  for(k=1; k<= info->ne; k++) {
-    pt = &mesh->tetra[k];
-    fprintf(out,"%d %d %d %d %d\n",pt->v[0],pt->v[1],pt->v[2],pt->v[3],pt->ref);
-  }
-  
-  /* Print Triangles */
-  fprintf(out,"\nTriangles\n%d\n",info->nt);
-  
-  for(k=1; k<= info->nt; k++) {
-    ptt = &mesh->tria[k];
-    fprintf(out,"%d %d %d %d\n",ptt->v[0],ptt->v[1],ptt->v[2],ptt->ref);
-  }
-  
-  fprintf(out,"\nEnd");
-  fclose(out);
-  
-  return(1);
-}
-
-/** Savesol for debugging purposes */
-int savesol(LSst *lsst) {
-  FILE        *out;
-  Info        *info;
-  pSol        sol;
-  double      *u;
-  int         k;
-  char        i,data[256];
-  
-  strcpy(data,"test.sol");
-  sol = &lsst->sol;
-  info = &lsst->info;
-  out = fopen(data,"w");
-  
-  fprintf(out,"MeshVersionFormatted 1\n\nDimension\n %d\n\n",info->dim);
-  fprintf(out,"SolAtVertices\n%d\n 1 2\n",info->np);
-  
-  /* Print points */
-  for(k=1; k<= info->np; k++) {
-    u = &sol->u[3*(k-1)];
-    fprintf(out,"%f %f %f \n",u[0],u[1],u[2]);
-  }
-  
-  fprintf(out,"\nEnd");
-  fclose(out);
-  
-  return(1);
-}
 
 /* 3d linear elasticity */
 int elasti1_3d(LSst *lsst) {
@@ -646,14 +571,13 @@ int elasti1_3d(LSst *lsst) {
   const char typ[3] = {'0', '1', '2'};
 
   /* -- Part I: matrix assembly */
-  chrono(ON,&lsst->info.ctim[3]);
-  if ( abs(lsst->info.imprim) > 4 )  fprintf(stdout,"  1.1 ASSEMBLY P%c matrices\n",typ[lsst->info.typ]);
+  if ( lsst->info.verb != '0' )  fprintf(stdout,"    Matrix and right-hand side assembly\n");
 
   /* counting P2 nodes (for dylib) */
 	if ( lsst->info.typ == P2 && !lsst->info.np2 ) {
 		lsst->info.np2 = hashar_3d(lsst);
 		if ( lsst->info.np2 == 0 ) {
-			fprintf(stdout," %% Error on P2 nodes\n");
+			fprintf(stdout," # Error on P2 nodes.\n");
 			return(0);
 		}
 	}
@@ -664,24 +588,15 @@ int elasti1_3d(LSst *lsst) {
     assert(lsst->sol.u);
   }
   
-  savemesh(lsst);
-  savesol(lsst);
-  
   /* build matrix and right-hand side */
-	if ( lsst->info.typ == P1 )
+	if ( lsst->info.typ == P1 ) {
     A = matA_P1_3d(lsst);
-  else
-		A = matA_P2_3d(lsst);
-	if ( abs(lsst->info.imprim) > 4 )  fprintf(stdout,"     matrix A updated\n");
-	if ( lsst->info.ddebug )
-    fprintf(stdout,"     A: %6d x %6d  sparsity %7.4f%%\n",A->nr,A->nc,100.0*A->nbe/A->nr/A->nc);
-	
-  F = rhsF_3d(lsst);
-	if ( abs(lsst->info.imprim) > 4 )  fprintf(stdout,"     vector F created\n");
-
-  chrono(OFF,&lsst->info.ctim[3]);
-  printim(lsst->info.ctim[3].gdif,stim);
-  if ( abs(lsst->info.imprim) > 4 )  fprintf(stdout,"     [Time: %s]\n",stim);
+    F = rhsF_3d(lsst);
+  }
+  else {
+		A = matA_P2_3d(lsst);	
+    F = rhsF_3d(lsst);
+  }
 
   /* free mesh structure + boundary conditions */
   if ( lsst->info.mfree) {
@@ -692,19 +607,17 @@ int elasti1_3d(LSst *lsst) {
   if ( lsst->info.typ == P2 )  free(lsst->hash.item);
 
   /* -- Part II: solver */
-  if ( abs(lsst->info.imprim) > 4 )  fprintf(stdout,"  1.2 SOLVING linear system\n");
-  chrono(ON,&lsst->info.ctim[4]);
-  ier = csrPrecondGrad(A,lsst->sol.u,F,&lsst->sol.err,&lsst->sol.nit,1);
-  chrono(OFF,&lsst->info.ctim[4]);
-  if ( abs(lsst->info.imprim) > 0 ) {
+  if ( lsst->info.verb != '0' ) {
+    fprintf(stdout,"    Solving linear system:");  fflush(stdout);
+    ier = csrPrecondGrad(A,lsst->sol.u,F,&lsst->sol.err,&lsst->sol.nit,1);
     if ( ier <= 0 )
-      fprintf(stdout,"  ## SOL NOT CONVERGED: ier= %d\n",ier);
-    else if ( abs(lsst->info.imprim) > 4 ) {
-      fprintf(stdout,"  %%%% CONVERGENCE: err= %E  nit= %d\n",lsst->sol.err,lsst->sol.nit);
-	    printim(lsst->info.ctim[4].gdif,stim);
-      fprintf(stdout,"     [Time: %s]\n",stim);
-		}
+      fprintf(stdout,"\n # convergence problem: %d\n",ier);
+    else
+      fprintf(stdout," %E in %d iterations\n",lsst->sol.err,lsst->sol.nit);
 	}
+  else {
+    ier = csrPrecondGrad(A,lsst->sol.u,F,&lsst->sol.err,&lsst->sol.nit,1);
+  }
 
   /* free memory */
   csrFree(A);
