@@ -1,0 +1,11 @@
+Dirichlet
+1
+2 triangles v 0. 0.
+
+Load
+1
+3 triangles n 0.01
+
+Lame
+1
+0 1. 1.

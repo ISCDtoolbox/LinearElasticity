@@ -253,7 +253,7 @@ static int parsop(LSst *lsst) {
   }
 
   if ( npar > 0 && lsst->info.verb != '0' ) {
-    fprintf(stdout," %d parameters\n",npar);
+    fprintf(stdout," %d conditions\n",npar);
   }
 
   return(1);

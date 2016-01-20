@@ -1,0 +1,14 @@
+Dirichlet
+1
+1 vertex v 0 0
+
+Load
+1
+2 edges n -0.2
+
+gravity
+0 -9.81e2
+
+Lame
+1
+0 186000. 3400.

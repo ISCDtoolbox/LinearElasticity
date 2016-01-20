@@ -1,0 +1,18 @@
+Load
+3
+6 Triangles n -1800
+2 Triangles n -1800
+7 Triangles n -1800
+
+Dirichlet
+1
+4  Triangles v 0. 0. 0.
+8  Triangles v 0. 0. 0.
+10 Triangles v 0. 0. 0.
+
+Gravity
+0 0 -9.81
+
+Lame
+1
+0 186000. 3400.
