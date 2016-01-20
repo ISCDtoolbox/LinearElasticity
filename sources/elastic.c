@@ -306,12 +306,12 @@ int main(int argc,char **argv) {
     fprintf(stdout," - LOADING DATA\n");
   }
 
-  /* parse parameters in file */
-  if ( !parsop(&lsst) )  return(1);
-
   /* loading mesh */
   ier = loadMesh(&lsst);
 	if ( ier <=0 )  return(1);
+
+  /* parse parameters in file */
+  if ( !parsop(&lsst) )  return(1);
 
   /* counting P2 nodes */
 	if ( lsst.info.typ == P2 )  
