@@ -17,7 +17,6 @@
 #define LS_VER   "5.0c"
 #define LS_REL   "Jan.19, 2016"
 #define LS_CPY   "(C) Copyright 2006- , ICS-SU"
-#define LS_STR   "-----------------------------------------------------------"
 
 #define LS_LAMBDA     10.0e5
 #define LS_MU          8.2e5

@@ -50,6 +50,7 @@ static void usage(char *prog) {
 }
 
 
+/* parse command line */
 static int parsar(int argc,char *argv[],LSst *lsst) {
   int      i;
   char    *ptr;
@@ -169,6 +170,7 @@ static int parsop(LSst *lsst) {
   lsst->sol.nbcl = 0;
 	npar = 0;
   while ( !feof(in) ) {
+    /* scan line */
     ret = fscanf(in,"%s",data);
     if ( !ret || feof(in) )  break;
     for (i=0; i<strlen(data); i++) data[i] = tolower(data[i]);
@@ -317,7 +319,7 @@ int main(int argc,char **argv) {
 
   /* allocating memory */
   if ( !lsst.sol.u ) {
-    lsst.sol.u  = (double*)calloc(lsst.info.dim * (lsst.info.npi+lsst.info.np2),sizeof(double));
+    lsst.sol.u  = (double*)calloc(lsst.info.dim * (lsst.info.np+lsst.info.np2),sizeof(double));
     assert(lsst.sol.u);
   }
 

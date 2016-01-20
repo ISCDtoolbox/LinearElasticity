@@ -55,7 +55,7 @@ int loadMesh(LSst *lsst) {
     lsst->mesh.tria  = (Tria*)calloc(lsst->info.nt+1,sizeof(Tria));
     assert(lsst->mesh.tria);
   }
-  if ( lsst->info.ne ) {
+  if ( lsst->info.ne >0 ) {
     lsst->mesh.tetra  = (Tetra*)calloc(lsst->info.ne+1,sizeof(Tetra));
     assert(lsst->mesh.tetra);
   }
@@ -74,7 +74,7 @@ int loadMesh(LSst *lsst) {
         GmfGetLin(inm,GmfVertices,&ppt->c[0],&ppt->c[1],&ppt->ref);
     }
     /* read mesh edges */
-    if ( lsst->info.na ) {
+    if ( lsst->info.na > 0 ) {
       lsst->mesh.edge  = (pEdge)calloc(lsst->info.na+1,sizeof(Edge));
       assert(lsst->mesh.edge);
     }
@@ -213,7 +213,7 @@ int saveSol(LSst *lsst) {
   }
 
   if ( !(outm = GmfOpenMesh(data,GmfWrite,lsst->info.ver,lsst->info.dim)) ) {
-    fprintf(stderr," # nable to open %s\n",data);
+    fprintf(stderr," # unable to open %s\n",data);
     return(0);
   }
   if ( lsst->info.verb != '0' )  fprintf(stdout,"    %s:",data);
