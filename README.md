@@ -1,40 +1,72 @@
-# Linear Elasticity Solver
+# elastic - linear elasticity solver
+Elastic is a computationally efficient linear elastic FEM solver for 2d and 3d simulations.
 
-## Install
-To download this repository, you can either click on the "Download ZIP" button, or type in a command prompt (MAC OS & Linux):
-```
-git clone https://github.com/ICStoolbox/LinearElasticity.git
-```
+## Installation
+clone this repository and build elastic:
 
-First, you will need to install the [ICS Commons Library](https://github.com/ICStoolbox/Commons) on your system. 
-Please refer to the instructions provided on the ICS Commons Library page in order to install this library.
+` git clone https://github.com/ICStoolbox/LinearElasticity.git `
 
-To compile the code and install the executable, navigate inside the directory
-where you downloaded or cloned the present repository, and type in a command prompt:
-```
-mkdir build
+go to LinearElasticity directory
+
+` cd LinearElasticity `
+
+then create build directory and create Makefile
+
+`mkdir build
 cd build
 cmake ..
-make install
+make`
+
+if no errors are produced, install the binary and library
+
+` make install ` 
+
+you can test the installation by entering the demos directory
+
+` cd ../demos 
+elastic demo1`
+
+this should produce a result like
+
+```- ELASTIC, Release 5.0c, Jan.19, 2016
+   (C) Copyright 2006- , ICS-SU
+
+ - LOADING DATA
+    carre2.elas: 3 parameters
+    carre2.mesh: 81 vertices, 32 edges, 128 triangles
+ - COMPLETED: 0.001s
+
+ ** MODULE ELASTIC: 5.0c
+    Matrix and right-hand side assembly
+    Solving linear system: 3.009659E-07 in 32 iterations
+ ** COMPLETED: 0.001s
+
+ - WRITING DATA
+    carre2.sol: 81 data vectors
+ - COMPLETED: 0.000s
+
+ ** Cumulative time: 0.003s.
 ```
+(Note: the version or release numbers may vary)
 
-##Usage
-Coming soon... 
+## Usage
 
-##Authors
-  * Maya de Buhan (Université Paris Descartes)
-  * Pascal Frey (Université Pierre et Marie Curie)
-  
-##Contributors
-  * Charles Dapogny (LJK, Université J. Fourier)
-  * Chiara Nardoni (ICS, Sorbonne Universités)
+## Documentation
 
-##License
-This code is distributed under the GNU Lesser General Public License
-(LGPL).  This implies that you may link the present code into proprietary
-applications, provided you follow the rules stated in the LGPL.  You can
-also modify the code; if you distribute a modified version, you must
-distribute it under the terms of the LGPL, which in particular states
-that you must release the source code for the modified software. 
+## Platforms
+elastic has been succesfully installed on Mac OSX and most Linux environments. 
+   
+## Authors & developers
+elastic has been initiated by Maya de Buhan and Pascal Frey. Current team includes Charles Dapogny, Chiara Nardoni and Loic Norgeot.
 
-See [LICENSE.md](LICENSE.md) for more information.
+Contributors to this project are warmly welcomed. You can help us to improve the code by 
+* pull requests: 
+* feature requests
+* bug reports
+
+Contact: 
+
+## License and copyright
+elastic is given under the [terms of the GNU Lesser General Public License](https://raw.githubusercontent.com/MmgTools/mmg/master/LICENSE).
+
+Copyright © Université Pierre et Marie Curie, 2006 - .

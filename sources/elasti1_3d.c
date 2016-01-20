@@ -375,12 +375,11 @@ static pCsr matA_P1_3d(LSst *lsst) {
   /* Fill stiffness matrix A */
   for (k=1; k<=lsst->info.ne; k++) {
     pt = &lsst->mesh.tetra[k];
-    
     if ( !pt->v[0] )  continue;
 
     /* tD E D */
     if ( !getMat(&lsst->sol,pt->ref,&lambda,&mu) )  continue;
-        
+
     DeD[0]  = DeD[40] = DeD[80] = 2.0 * mu + lambda;
     DeD[4]  = DeD[8]  = DeD[36] = DeD[44] = DeD[72] = DeD[76] = lambda;
     DeD[10] = DeD[12] = DeD[20] = DeD[24] = DeD[28] = DeD[30] = mu; 
@@ -458,6 +457,8 @@ static pCsr matA_P1_3d(LSst *lsst) {
   /* Set large value for Dirichlet conditions */
   setTGV_3d(lsst,0,A);
   csrPack(A);
+  if ( lsst->info.verb == '+' )
+    fprintf(stdout,"     %dx%d matrix, %.2f sparsity\n",nr,nc,100.0*A->nbe/nr/nc);
 
   return(A);
 }
@@ -587,7 +588,7 @@ int elasti1_3d(LSst *lsst) {
     lsst->sol.u  = (double*)calloc(lsst->info.dim * (lsst->info.npi+lsst->info.np2),sizeof(double));
     assert(lsst->sol.u);
   }
-  
+
   /* build matrix and right-hand side */
 	if ( lsst->info.typ == P1 ) {
     A = matA_P1_3d(lsst);

@@ -18,7 +18,7 @@ pCl getCl(pSol sol,int ref,int elt) {
 int getMat(pSol sol,int ref,double *lambda,double *mu) {
   pMat   pm;
   int    i;
-  
+
   for (i=0; i<sol->nmat; i++) {
     pm = &sol->mat[i];
     if ( pm->ref == ref ) {
@@ -294,7 +294,7 @@ int elasti1_2d(LSst *lsst) {
   /* build matrix */
   A = 0;
   F = 0;
-	
+
 	if ( lsst->info.typ == P1 ) {
     A = matA_P1_2d(lsst);
     F = rhsF_P1_2d(lsst);
