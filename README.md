@@ -7,22 +7,22 @@ Please refer to the instructions provided on the ICS Commons Library page in ord
 
 2. clone this repository and build elastic:
 
-` git clone https://github.com/ICStoolbox/LinearElasticity.git `
+   ` git clone https://github.com/ICStoolbox/LinearElasticity.git `
 
-go to LinearElasticity directory
+   go to LinearElasticity directory
 
-` cd LinearElasticity `
+   ` cd LinearElasticity `
 
-then create build directory and create Makefile
+   then create build directory and create Makefile
 
-`mkdir build
-cd build
-cmake ..
-make`
+   `mkdir build
+   cd build
+   cmake ..
+   make`
 
-if no errors are produced, install the binary and library
+   if no errors are produced, install the binary and library
 
-` make install ` 
+   ` make install ` 
 
 you can test the installation and look at examples by entering the [demos](demos) directory.
 
