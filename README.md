@@ -1,40 +1,42 @@
-# Linear Elasticity Solver
+# elastic - linear elasticity solver
+Elastic is a computationally efficient linear elastic FEM solver for 2d and 3d simulations.
 
-## Install
-To download this repository, you can either click on the "Download ZIP" button, or type in a command prompt (MAC OS & Linux):
-```
-git clone https://github.com/ICStoolbox/LinearElasticity.git
-```
-
-First, you will need to install the [ICS Commons Library](https://github.com/ICStoolbox/Commons) on your system. 
+## Installation
+1. you will need to install the [ICS Commons Library](https://github.com/ICStoolbox/Commons) on your system. 
 Please refer to the instructions provided on the ICS Commons Library page in order to install this library.
 
-To compile the code and install the executable, navigate inside the directory
-where you downloaded or cloned the present repository, and type in a command prompt:
-```
-mkdir build
+2. clone this repository and build elastic:
+
+` git clone https://github.com/ICStoolbox/LinearElasticity.git `
+
+go to LinearElasticity directory
+
+` cd LinearElasticity `
+
+then create build directory and create Makefile
+
+`mkdir build
 cd build
 cmake ..
-make install
-```
+make`
+
+if no errors are produced, install the binary and library
+
+` make install ` 
+
+you can test the installation and look at examples by entering the [demos](demos) directory.
 
 ##Usage
-Coming soon... 
+elastic can be used in two ways:
+* as a standalone binary code. usage: elastic file.mesh
+* as a library that can be plugged into C/C++ codes.
+See the project [wiki](wiki) for more details.
 
-##Authors
-  * Maya de Buhan (Université Paris Descartes)
-  * Pascal Frey (Université Pierre et Marie Curie)
-  
-##Contributors
-  * Charles Dapogny (LJK, Université J. Fourier)
-  * Chiara Nardoni (ICS, Sorbonne Universités)
+##Authors & contributors
+* elastic has been initiated by Maya de Buhan (Université Paris Descartes) and Pascal Frey (Université Pierre et Marie Curie). Current team includes Charles Dapogny (Université Joseph Fourier), Chiara Nardoni (Université Pierre et Marie Curie) and Loic Norgeot (Université Pierre et Marie Curie).
+* Contributors to this project are warmly welcomed. 
 
 ##License
-This code is distributed under the GNU Lesser General Public License
-(LGPL).  This implies that you may link the present code into proprietary
-applications, provided you follow the rules stated in the LGPL.  You can
-also modify the code; if you distribute a modified version, you must
-distribute it under the terms of the LGPL, which in particular states
-that you must release the source code for the modified software. 
+elastic is given under the [terms of the GNU Lesser General Public License] (LICENSE.md).
 
-See [LICENSE.md](LICENSE.md) for more information.
+Copyright © Université Pierre et Marie Curie, 2006 - .
