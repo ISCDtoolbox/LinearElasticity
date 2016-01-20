@@ -19,6 +19,7 @@ int getMat(pSol sol,int ref,double *lambda,double *mu) {
   pMat   pm;
   int    i;
 
+  if ( sol->nmat == 0 )  return(1);
   for (i=0; i<sol->nmat; i++) {
     pm = &sol->mat[i];
     if ( pm->ref == ref ) {
@@ -29,6 +30,7 @@ int getMat(pSol sol,int ref,double *lambda,double *mu) {
   }
   *lambda = LS_LAMBDA;
   *mu     = LS_MU;
+
   return(0);
 }
 
@@ -216,7 +218,7 @@ static double *rhsF_P1_2d(LSst *lsst) {
       pcl = getCl(&lsst->sol,ppt->ref,LS_ver);
       if ( !pcl )  continue;
       else if ( pcl->typ == Dirichlet ) {
-        vp = pcl->att == 'f' ? &lsst->sol.bc[2*(k-1)] : &pcl->u[0];
+        vp = pcl->att == 'f' ? &lsst->sol.u[2*(k-1)] : &pcl->u[0];
         F[2*(k-1)+0] = LS_TGV * vp[0];
         F[2*(k-1)+1] = LS_TGV * vp[1];
       }
@@ -231,12 +233,12 @@ static double *rhsF_P1_2d(LSst *lsst) {
       pcl = getCl(&lsst->sol,pa->ref,LS_edg);
       if ( !pcl )  continue;
       else if ( pcl->typ == Dirichlet ) {
-        va = pcl->att == 'f' ? &lsst->sol.bc[2*(k-1)] : &pcl->u[0];
+        va = pcl->att == 'f' ? &lsst->sol.u[2*(k-1)] : &pcl->u[0];
         for (i=0; i<2; i++) {
           ppt = &lsst->mesh.point[pa->v[i]];
           if ( pa->ref != ppt->ref ) {
             pcl1 = getCl(&lsst->sol,ppt->ref,LS_edg);
-            vp = pcl1->att == 'f' ? &lsst->sol.bc[2*(pa->v[i]-1)] : &pcl1->u[0];
+            vp = pcl1->att == 'f' ? &lsst->sol.u[2*(pa->v[i]-1)] : &pcl1->u[0];
             F[2*(pa->v[i]-1)+0] = LS_TGV * vp[0];
             F[2*(pa->v[i]-1)+1] = LS_TGV * vp[1];
           }

@@ -38,7 +38,7 @@ int LS_stop(LSst *lsst) {
 	char   stim[32];
 
 	/* release memory */
-  free(lsst->sol.bc);
+  free(lsst->sol.u);
 	free(lsst->sol.cl);
 	free(lsst->sol.mat);
   if ( lsst->sol.namein )  free(lsst->sol.namein);
