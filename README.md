@@ -56,7 +56,7 @@ Running elastic with the input file 'carre.mesh' will produce an output that wil
 
      ** Cumulative time: 6.990s.
 
-This output was produced by the parameter file 'carre.elas' that contained the lines:
+This output was produced by the parameter file 'carre.elas' which contains the following lines:
 
     Dirichlet
     1
@@ -72,7 +72,7 @@ This output was produced by the parameter file 'carre.elas' that contained the l
     Lame
     1
     0 186000. 3400.
-
+describing the boundary conditions, load (surface) and body forces, and the material elastic properties. 
 
 #### Authors & contributors
 * elastic has been initiated by Maya de Buhan (Université Paris Descartes) and Pascal Frey (Université Pierre et Marie Curie). Current team includes Charles Dapogny (Université Joseph Fourier), Chiara Nardoni (Université Pierre et Marie Curie) and Loic Norgeot (Université Pierre et Marie Curie).
