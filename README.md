@@ -14,11 +14,12 @@ Please refer to the instructions provided on the ICS Commons Library page in ord
    ` cd LinearElasticity `
 
    then create build directory and create Makefile
-
-   `mkdir build
+   ```
+   mkdir build
    cd build
    cmake ..
-   make`
+   make
+   ```
 
    if no errors are produced, install the binary and library
 
