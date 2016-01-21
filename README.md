@@ -1,5 +1,5 @@
-# elastic - linear elasticity solver
-Elastic is a computationally efficient linear elastic FEM solver for 2d and 3d simulations.
+# elastic
+Elastic is a finite element solver for linear elasticity problems in two and three dimensions.
 
 #### Installation
 1. you will need to install the [ICS Commons Library](https://github.com/ICStoolbox/Commons) on your system. 
@@ -27,10 +27,11 @@ Please refer to the instructions provided on the ICS Commons Library page in ord
 you can test the installation and look at examples by entering the [demos](demos) directory.
 
 #### Usage
-elastic can be used in two ways:
-* as a standalone binary code. usage: elastic file.mesh
-* as a library that can be plugged into C/C++ codes.
-See the project [wiki](https://github.com/ICStoolbox/LinearElasticity/wiki) for more details.
+After compiling elastic as described above, you should have an executable file in your $HOME/bin directory. If your PATH variable is correctly set to this directory, elastic can be called as follows:
+
+    elastic mesh_file[.mesh]
+ 
+A full description of all parameters that can be specified in the command line or in a parameter file [file.elas] can be found in the project [wiki](https://github.com/ICStoolbox/LinearElasticity/wiki).
 
 #### Authors & contributors
 * elastic has been initiated by Maya de Buhan (Université Paris Descartes) and Pascal Frey (Université Pierre et Marie Curie). Current team includes Charles Dapogny (Université Joseph Fourier), Chiara Nardoni (Université Pierre et Marie Curie) and Loic Norgeot (Université Pierre et Marie Curie).
@@ -38,5 +39,3 @@ See the project [wiki](https://github.com/ICStoolbox/LinearElasticity/wiki) for 
 
 #### License
 elastic is given under the [terms of the GNU Lesser General Public License] (LICENSE.md).
-
-Copyright © Université Pierre et Marie Curie, 2006 - .
