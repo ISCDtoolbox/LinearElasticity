@@ -31,7 +31,47 @@ After compiling elastic as described above, you should have an executable file i
 
     elastic mesh_file[.mesh]
  
-A full description of all parameters that can be specified in the command line or in a parameter file [file.elas] can be found in the project [wiki](https://github.com/ICStoolbox/LinearElasticity/wiki).
+A full description of all parameters and options that can be specified in the command line or in a parameter file [file.elas] can be found in the project [wiki](https://github.com/ICStoolbox/LinearElasticity/wiki).
+
+Running elastic with the input file 'carre.mesh' will produce an output that will look like:
+
+    user:~/code/LinearElasticity/demos/2d$ elastic carre 
+     - ELASTIC, Release 5.0c, Jan.19, 2016
+       (C) Copyright 2006- , ICS-SU
+    
+     - LOADING DATA
+        carre.mesh: 5663 vertices, 257 edges, 11067 triangles
+        carre.elas: 4 conditions
+     - COMPLETED: 0.024s
+
+     ** MODULE ELASTIC: 5.0c
+        Matrix and right-hand side assembly
+        Solving linear system: 9.236327E-07 in 2983 iterations
+     ** COMPLETED: 6.954s
+
+     - WRITING DATA
+        carre.sol: 5663 data vectors
+     - COMPLETED: 0.012s
+
+     ** Cumulative time: 6.990s.
+
+This output was produced by the parameter file 'carre.elas' that contained the lines:
+
+    Dirichlet
+    1
+    1 vertex v 0 0
+
+    Load
+    1
+    2 edges n -0.2
+
+    Gravity
+    0 -9.81e2
+
+    Lame
+    1
+    0 186000. 3400.
+
 
 #### Authors & contributors
 * elastic has been initiated by Maya de Buhan (Université Paris Descartes) and Pascal Frey (Université Pierre et Marie Curie). Current team includes Charles Dapogny (Université Joseph Fourier), Chiara Nardoni (Université Pierre et Marie Curie) and Loic Norgeot (Université Pierre et Marie Curie).
