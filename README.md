@@ -30,7 +30,7 @@ you can test the installation and look at examples by entering the [demos](demos
 elastic can be used in two ways:
 * as a standalone binary code. usage: elastic file.mesh
 * as a library that can be plugged into C/C++ codes.
-See the project [wiki](wiki) for more details.
+See the project [wiki](https://github.com/ICStoolbox/LinearElasticity/wiki) for more details.
 
 ##Authors & contributors
 * elastic has been initiated by Maya de Buhan (Université Paris Descartes) and Pascal Frey (Université Pierre et Marie Curie). Current team includes Charles Dapogny (Université Joseph Fourier), Chiara Nardoni (Université Pierre et Marie Curie) and Loic Norgeot (Université Pierre et Marie Curie).
