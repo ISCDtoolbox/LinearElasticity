@@ -28,18 +28,12 @@ Please refer to the instructions provided on the ICS Commons Library page in ord
 you can test the installation and look at examples by entering the [demos](demos) directory.
 
 #####Usage
-elastic program is called in command line. Open a terminal and type
-
-    elastic --help
-
-or
-
-    elastic -h
-
-to know the list of options and flags. The square braces indicate optional arguments. Some commands have flags, some others do no. Some flags are optional, some are mandatory. The help output looks like this:
+After compiling elastic as described above, you should have an executable file in your $HOME/bin directory. If your PATH variable is correctly set to this directory, elastic can be called with the following syntax:
 
     usage: elastic [+/-v | -h] [-n nit] [-r res] [-t typ] source_file[.mesh] [-s data_file[.sol]] [-o output_file[.sol]]
- 
+
+The square braces indicate optional arguments. Some commands have flags, some others do not.
+
 The options and flags are:
 
     --help       show the syntax and exit.
@@ -55,14 +49,9 @@ The options and flags are:
     data_file.sol         name of file containing the initial solution or boundary conditions
     output_file.sol       name of the output file (displacement field)
 
-
-#### Usage
-After compiling elastic as described above, you should have an executable file in your $HOME/bin directory. If your PATH variable is correctly set to this directory, elastic can be called as follows:
-
-    elastic mesh_file[.mesh]
- 
 A full description of all parameters and options that can be specified in the command line or in a parameter file [file.elas] can be found in the project [wiki](https://github.com/ICStoolbox/LinearElasticity/wiki).
 
+#####Quickstart
 Running elastic with the input file 'carre.mesh' will produce an output that will look like:
 
     user:~/code/LinearElasticity/demos/2d$ elastic carre 
