@@ -25,7 +25,7 @@ Please refer to the instructions provided on the ICS Commons Library page in ord
 
    ` make install ` 
 
-#####Usage
+#### Usage
 After compiling elastic as described above, you should have an executable file in your $HOME/bin directory. If your PATH variable is correctly set to this directory, elastic can be called with the following syntax:
 
     usage: elastic [+/-v | -h] [-n nit] [-r res] [-t typ] source_file[.mesh] [-p param_file[.elas]] [-s data_file[.sol]] [-o output_file[.sol]]
@@ -50,7 +50,7 @@ The options and flags are:
 
 A full description of all parameters and options that can be specified in the command line or in a parameter file [file.elas] can be found in the project [wiki](https://github.com/ICStoolbox/LinearElasticity/wiki).
 
-#####Quickstart
+#### Quickstart
 You can test the installation and look at examples by entering the [demos](demos) directory and running the program:
 
     cd demos/2d
