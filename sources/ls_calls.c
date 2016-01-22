@@ -13,7 +13,7 @@ LSst *LS_init(int dim,int ver,char typ,char mfree) {
   memset(&lsst->sol,0,sizeof(Sol));
   lsst->sol.cl  = (Cl*)calloc(LS_CL,sizeof(Cl));
   lsst->sol.mat = (Mat*)calloc(LS_MAT,sizeof(Mat));
-  lsst->sol.err = LS_RES;
+  lsst->sol.res = LS_RES;
   lsst->sol.nit = LS_MAXIT;
   lsst->sol.cltyp = LS_tri;  // For the time being...
 

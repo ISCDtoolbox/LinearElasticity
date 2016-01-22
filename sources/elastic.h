@@ -55,7 +55,7 @@ typedef Tetra * pTetra;
 
 typedef struct {
 	int      dim,ver;
-	int      np,np2,na,nt,ne,npi,nti,nei;
+	int      np,np2,na,nt,ne,npi,nai,nti,nei;
   double   gravity,gr[3];
   char     verb,load,typ,cg,zip,rhs,mfree;
   mytime   ctim[TIMEMAX];
@@ -85,8 +85,8 @@ typedef Mat * pMat;
 
 typedef struct {
   int      nit,iter,nbcl,nmat;
-  double  *u,err;
-  char    *namein,*nameout,cltyp;
+  double  *u,res;
+  char    *namein,*nameout,*namepar,cltyp;
   Cl      *cl;
   Mat     *mat;
 } Sol;

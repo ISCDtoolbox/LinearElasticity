@@ -45,7 +45,7 @@ static void excfun(int sigid) {
 
 
 static void usage(char *prog) {
-  fprintf(stdout,"usage: %s [+/-v | -h] [-t typ] [-e err] [-n nit] source_file[.mesh] [-s data_file[.sol]] [-o output_file[.sol]]\n",prog);
+  fprintf(stdout,"usage: %s [+/-v | -h] [-n nit] [-r res] [-t typ] source_file[.mesh] [-p param_file[.elas]] [-s data_file[.sol]] [-o output_file[.sol]]\n",prog);
   exit(1);
 }
 
@@ -62,55 +62,68 @@ static int parsar(int argc,char *argv[],LSst *lsst) {
       case '-':
         if ( !strcmp(argv[i],"--help") )
           usage(argv[0]);
+        else if ( !strcmp(argv[i],"--version") ) {
+          fprintf(stdout,"%s: version: %s release: %s\n",argv[0],LS_VER,LS_REL);
+          exit(1);
+        }
         break;
       case 'h':  /* on-line help */
       case '?':
         usage(argv[0]);
         break;
-      case 'e':
-        if ( !strcmp(argv[i],"-e") ) {
-          ++i;
-          if ( isdigit(argv[i][0]) )
-            lsst->sol.err = strtod(argv[i],NULL);
-          else
-            --i; 
-        }
-        break;
       case 'i':
-        if ( !strcmp(argv[i],"-i") ) {
-          ++i;
+        if ( ++i < argc ) {
           lsst->mesh.name = argv[i];
+          ptr = strstr(lsst->mesh.name,".mesh");
+          if ( !ptr )  strcat(lsst->mesh.name,".mesh");
+        }
+        else {
+          fprintf(stdout,"%s: missing input file\n", argv[0]);
+          usage(argv[0]);
         }
         break;
       case 'n':
-        if ( !strcmp(argv[i],"-n") ) {
-          ++i;
-          if ( i < argc && isdigit(argv[i][0]) )
-            lsst->sol.nit = atoi(argv[i]);
-          else
-            --i; 
+        if ( ++i < argc && isdigit(argv[i][0]) )
+          lsst->sol.nit = atoi(argv[i]);
+        else
+          --i; 
+        break;
+      case 'p':
+        if ( ++i < argc ) {
+          lsst->sol.namepar = argv[i];
+          ptr = strstr(lsst->sol.namepar,".elas");
+          if ( !ptr )  strcat(lsst->sol.namepar,".elas");
+        }
+        else {
+          fprintf(stdout,"%s: missing parameter file\n", argv[0]);
+          usage(argv[0]);
+        }
+        break;
+      case 'r':
+        ++i;
+        if ( ++i < argc && isdigit(argv[i][0]) )
+          lsst->sol.res = strtod(argv[i],NULL);
+        else {
+          fprintf(stderr,"%s: missing argument option\n",argv[0]);
+          usage(argv[0]);
         }
         break;
       case 's':
-        if ( !strcmp(argv[i],"-s") ) {
-          ++i;
+        if ( ++i < argc ) {
           lsst->sol.namein = argv[i];
           ptr = strstr(lsst->sol.namein,".sol");
           if ( !ptr )  strcat(lsst->sol.namein,".sol");
         }
+        else {
+          fprintf(stdout,"%s: missing data file\n", argv[0]);
+          usage(argv[0]);
+        }
         break;
       case 't':
-        if ( ++i < argc ) {
-          if ( isdigit(argv[i][0]) )
-            lsst->info.typ = atoi(argv[i]);
-          else { 
-            fprintf(stderr,"%s: missing argument option %c\n",argv[0],argv[i-1][1]);
-            usage(argv[0]);
-            i--;
-          }
-        }
-        else {
-          fprintf(stderr,"%s: missing argument option %c\n",argv[0],argv[i-1][1]);
+        if ( ++i < argc && isdigit(argv[i][0]) )
+          lsst->info.typ = atoi(argv[i]);
+        else { 
+          fprintf(stderr,"%s: missing argument option\n",argv[0]);
           usage(argv[0]);
         }
         break;
@@ -158,15 +171,26 @@ static int parsop(LSst *lsst) {
   char       *ptr,buf[256],data[256];
   FILE       *in;
 
-  strcpy(data,lsst->mesh.name);
-  ptr = strstr(data,".mesh");
-  if ( ptr )  *ptr = '\0';
-  strcat(data,".elas");
-  in = fopen(data,"r");
-  if ( !in ) {
-    sprintf(data,"%s","DEFAULT.elas");
+  if ( !lsst->sol.namepar ) {
+    strcpy(data,lsst->mesh.name);
+    ptr = strstr(data,".mesh");
+    if ( ptr )  *ptr = '\0';
+    strcat(data,".elas");
     in = fopen(data,"r");
-    if ( !in )  return(1);
+    if ( !in ) {
+      sprintf(data,"%s","DEFAULT.elas");
+      in = fopen(data,"r");
+    }
+  }
+  else {
+    strcpy(data,lsst->sol.namepar);
+    ptr = strstr(data,".elas");
+    if ( !ptr )  strcat(data,".elas");
+    in = fopen(data,"r");
+  }
+  if ( !in ) {
+    if ( lsst->info.verb != '0' )  fprintf(stdout," # parameter file %s not found\n",data); 
+    return(0);
   }
   if ( lsst->info.verb != '0' )  fprintf(stdout,"    %s:",data);
 
@@ -288,7 +312,7 @@ int main(int argc,char **argv) {
   memset(&lsst.sol,0,sizeof(Sol));
 	lsst.sol.cl  = (Cl*)calloc(LS_CL,sizeof(Cl));
   lsst.sol.mat = (Mat*)calloc(LS_MAT,sizeof(Mat));
-  lsst.sol.err = LS_RES;
+  lsst.sol.res = LS_RES;
   lsst.sol.nit = LS_MAXIT;
 
   /* global parameters */

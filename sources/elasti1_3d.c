@@ -610,14 +610,14 @@ int elasti1_3d(LSst *lsst) {
   /* -- Part II: solver */
   if ( lsst->info.verb != '0' ) {
     fprintf(stdout,"    Solving linear system:");  fflush(stdout);
-    ier = csrPrecondGrad(A,lsst->sol.u,F,&lsst->sol.err,&lsst->sol.nit,1);
+    ier = csrPrecondGrad(A,lsst->sol.u,F,&lsst->sol.res,&lsst->sol.nit,1);
     if ( ier <= 0 )
       fprintf(stdout,"\n # convergence problem: %d\n",ier);
     else
-      fprintf(stdout," %E in %d iterations\n",lsst->sol.err,lsst->sol.nit);
+      fprintf(stdout," %E in %d iterations\n",lsst->sol.res,lsst->sol.nit);
 	}
   else {
-    ier = csrPrecondGrad(A,lsst->sol.u,F,&lsst->sol.err,&lsst->sol.nit,1);
+    ier = csrPrecondGrad(A,lsst->sol.u,F,&lsst->sol.res,&lsst->sol.nit,1);
   }
 
   /* free memory */

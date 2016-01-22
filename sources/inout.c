@@ -44,6 +44,7 @@ int loadMesh(LSst *lsst) {
     return(0);
   }
 	lsst->info.npi = lsst->info.np;
+	lsst->info.nai = lsst->info.na;
 	lsst->info.nti = lsst->info.nt;
 	lsst->info.nei = lsst->info.ne;
 
