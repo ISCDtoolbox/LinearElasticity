@@ -59,6 +59,10 @@ static int parsar(int argc,char *argv[],LSst *lsst) {
   while ( i < argc ) {
     if ( (*argv[i] == '-') || (*argv[i] == '+') ) {
       switch(argv[i][1]) {
+      case '-':
+        if ( !strcmp(argv[i],"--help") )
+          usage(argv[0]);
+        break;
       case 'h':  /* on-line help */
       case '?':
         usage(argv[0]);
