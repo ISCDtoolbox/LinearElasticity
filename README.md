@@ -25,8 +25,6 @@ Please refer to the instructions provided on the ICS Commons Library page in ord
 
    ` make install ` 
 
-you can test the installation and look at examples by entering the [demos](demos) directory.
-
 #####Usage
 After compiling elastic as described above, you should have an executable file in your $HOME/bin directory. If your PATH variable is correctly set to this directory, elastic can be called with the following syntax:
 
@@ -52,7 +50,12 @@ The options and flags are:
 A full description of all parameters and options that can be specified in the command line or in a parameter file [file.elas] can be found in the project [wiki](https://github.com/ICStoolbox/LinearElasticity/wiki).
 
 #####Quickstart
-Running elastic with the input file 'carre.mesh' will produce an output that will look like:
+You can test the installation and look at examples by entering the [demos](demos) directory and running the program:
+
+    cd demos/2d
+    elastic carre.mesh
+
+that will produce an output that will look like:
 
     user:~/code/LinearElasticity/demos/2d$ elastic carre 
      - ELASTIC, Release 5.0c, Jan.19, 2016
