@@ -1,7 +1,7 @@
-# elastic - linear elasticity solver
-Elastic is a computationally efficient linear elastic FEM solver for 2d and 3d simulations.
+# elastic
+Elastic is a finite element solver for linear elasticity problems in two and three dimensions.
 
-## Installation
+#### Installation
 1. you will need to install the [ICS Commons Library](https://github.com/ICStoolbox/Commons) on your system. 
 Please refer to the instructions provided on the ICS Commons Library page in order to install this library.
 
@@ -14,11 +14,12 @@ Please refer to the instructions provided on the ICS Commons Library page in ord
    ` cd LinearElasticity `
 
    then create build directory and create Makefile
-
-   `mkdir build
+   ```
+   mkdir build
    cd build
    cmake ..
-   make`
+   make
+   ```
 
    if no errors are produced, install the binary and library
 
@@ -26,17 +27,40 @@ Please refer to the instructions provided on the ICS Commons Library page in ord
 
 you can test the installation and look at examples by entering the [demos](demos) directory.
 
-##Usage
-elastic can be used in two ways:
-* as a standalone binary code. usage: elastic file.mesh
-* as a library that can be plugged into C/C++ codes.
-See the project [wiki](wiki) for more details.
+#### Usage
+After compiling elastic as described above, you should have an executable file in your $HOME/bin directory. If your PATH variable is correctly set to this directory, elastic can be called as follows:
 
-##Authors & contributors
+    elastic mesh_file[.mesh]
+ 
+A full description of all parameters and options that can be specified in the command line or in a parameter file [file.elas] can be found in the project [wiki](https://github.com/ICStoolbox/LinearElasticity/wiki).
+
+Running elastic with the input file 'carre.mesh' will produce an output that will look like:
+
+    user:~/code/LinearElasticity/demos/2d$ elastic carre 
+     - ELASTIC, Release 5.0c, Jan.19, 2016
+       (C) Copyright 2006- , ICS-SU
+    
+     - LOADING DATA
+        carre.mesh: 5663 vertices, 257 edges, 11067 triangles
+        carre.elas: 4 conditions
+     - COMPLETED: 0.024s
+
+     ** MODULE ELASTIC: 5.0c
+        Matrix and right-hand side assembly
+        Solving linear system: 9.236327E-07 in 2983 iterations
+     ** COMPLETED: 6.954s
+
+     - WRITING DATA
+        carre.sol: 5663 data vectors
+     - COMPLETED: 0.012s
+
+     ** Cumulative time: 6.990s.
+
+This output was produced by the parameter file 'carre.elas' which contains the specifications of the problem (boundary conditions, surface load and body forces, elastic properties of the domain).
+
+#### Authors & contributors
 * elastic has been initiated by Maya de Buhan (Université Paris Descartes) and Pascal Frey (Université Pierre et Marie Curie). Current team includes Charles Dapogny (Université Joseph Fourier), Chiara Nardoni (Université Pierre et Marie Curie) and Loic Norgeot (Université Pierre et Marie Curie).
 * Contributors to this project are warmly welcomed. 
 
-##License
+#### License
 elastic is given under the [terms of the GNU Lesser General Public License] (LICENSE.md).
-
-Copyright © Université Pierre et Marie Curie, 2006 - .
