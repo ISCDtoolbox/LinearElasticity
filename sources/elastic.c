@@ -379,6 +379,7 @@ int main(int argc,char **argv) {
 
 	ier = LS_elastic(&lsst);
 	if ( !ier )  return(1);
+
   chrono(OFF,&lsst.info.ctim[2]);
   if ( lsst.info.verb != '0' ) {
 		printim(lsst.info.ctim[2].gdif,stim);
