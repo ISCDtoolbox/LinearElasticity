@@ -45,7 +45,19 @@ static void excfun(int sigid) {
 
 
 static void usage(char *prog) {
-  fprintf(stdout,"usage: %s [+/-v | -h] [-n nit] [-r res] [-t typ] source_file[.mesh] [-p param_file[.elas]] [-s data_file[.sol]] [-o output_file[.sol]]\n",prog);
+  fprintf(stdout,"usage: %s [+/-v | -h] [-n nit] [-r res] [-t typ] source[.mesh] [-p param[.elas]] [-s data[.sol]] [-o output[.sol]]\n",prog);
+  fprintf(stdout,"\nOptions and flags:\n\
+  --help       show the syntax and exit.\n\
+  --version    show the version and date of release and exit.\n\n\
+  -n nit       number of iterations max for convergence\n\
+  -r res       value of the residual (Krylov space) for convergence\n\
+  -t typ       specify the type of FE space: 1: P1, 2: P2\n\
+  -v           suppress any message (for use with function call).\n\
+  +v           increase the verbosity level for output.\n\n\
+  source.mesh    name of the mesh file\n\
+  param.elas     name of file containing elasticity parameters\n\
+  data.sol       name of file containing the initial solution or boundary conditions\n\
+  output.sol     name of the output file (displacement field)\n");
   exit(1);
 }
 
@@ -144,8 +156,11 @@ static int parsar(int argc,char *argv[],LSst *lsst) {
       }
     }
     else {
-      if ( lsst->mesh.name == NULL )
+      if ( lsst->mesh.name == NULL ) {
         lsst->mesh.name = argv[i];
+        ptr = strstr(lsst->mesh.name,".mesh");
+        if ( !ptr )  strcat(lsst->mesh.name,".mesh");
+      }
       else {
         fprintf(stdout,"%s: illegal option %s\n",argv[0],argv[i]);
         usage(argv[0]);
