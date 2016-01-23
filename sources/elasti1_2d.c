@@ -248,7 +248,7 @@ static double *rhsF_P1_2d(LSst *lsst) {
         }
       }
       /* load along normal direction (normal component) */
-      else if ( pcl->typ == Load ) { // formule de quadrature a changer eventuellement
+      else if ( pcl->typ == Load ) {
         a = &lsst->mesh.point[pa->v[0]].c[0];
         b = &lsst->mesh.point[pa->v[1]].c[0];
         lon = length(a,b,n) / 2.0;

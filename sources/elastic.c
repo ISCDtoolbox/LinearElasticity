@@ -85,8 +85,10 @@ static int parsar(int argc,char *argv[],LSst *lsst) {
       case 'n':
         if ( ++i < argc && isdigit(argv[i][0]) )
           lsst->sol.nit = atoi(argv[i]);
-        else
-          --i; 
+        else {
+          fprintf(stderr,"%s: missing argument option\n",argv[0]);
+          usage(argv[0]);
+        }
         break;
       case 'p':
         if ( ++i < argc ) {
@@ -100,7 +102,6 @@ static int parsar(int argc,char *argv[],LSst *lsst) {
         }
         break;
       case 'r':
-        ++i;
         if ( ++i < argc && isdigit(argv[i][0]) )
           lsst->sol.res = strtod(argv[i],NULL);
         else {
@@ -171,6 +172,7 @@ static int parsop(LSst *lsst) {
   char       *ptr,buf[256],data[256];
   FILE       *in;
 
+  /* check for parameter file */
   if ( !lsst->sol.namepar ) {
     strcpy(data,lsst->mesh.name);
     ptr = strstr(data,".mesh");
