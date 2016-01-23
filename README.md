@@ -1,5 +1,5 @@
 # elastic
-Elastic is a finite element solver for linear elasticity problems in two and three dimensions.
+Elastic is a simple yet efficient finite element solver for linear elasticity problems in two and three dimensions.
 
 #### Installation
 1. you will need to install the [ICS Commons Library](https://github.com/ICStoolbox/Commons) on your system. 
