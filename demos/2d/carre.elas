@@ -4,7 +4,7 @@ Dirichlet
 
 Load
 1
-2 edges n -0.2
+2 edges n 1000
 
 gravity
 0 -9.81e2
