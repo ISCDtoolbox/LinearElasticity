@@ -1,7 +1,7 @@
 #ifndef __LS_CALLS_H
 #define __LS_CALLS_H
 
-enum {Dirichlet=1, Load};
+enum {Dirichlet=1, Load=2, Gravity=4};
 enum {P0=0, P1, P2};
 enum {LS_ver=1,LS_edg=2,LS_tri=4,LS_tet=8};
 

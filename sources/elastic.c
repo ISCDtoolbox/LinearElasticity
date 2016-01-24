@@ -65,7 +65,7 @@ static void usage(char *prog) {
 /* parse command line */
 static int parsar(int argc,char *argv[],LSst *lsst) {
   int      i;
-  char    *ptr;
+  char    *ptr,*data;
 
   i = 1;
   while ( i < argc ) {
@@ -157,9 +157,11 @@ static int parsar(int argc,char *argv[],LSst *lsst) {
     }
     else {
       if ( lsst->mesh.name == NULL ) {
-        lsst->mesh.name = argv[i];
-        ptr = strstr(lsst->mesh.name,".mesh");
-        if ( !ptr )  strcat(lsst->mesh.name,".mesh");
+        data = (char*)calloc(strlen(argv[i])+10,sizeof(char));
+        strcpy(data,argv[i]);
+        ptr = strstr(data,".mesh");
+        if ( !ptr )  strcat(data,".mesh");
+        lsst->mesh.name = data;
       }
       else {
         fprintf(stdout,"%s: illegal option %s\n",argv[0],argv[i]);
@@ -221,40 +223,57 @@ static int parsop(LSst *lsst) {
     for (i=0; i<strlen(data); i++) data[i] = tolower(data[i]);
 
     /* check for condition type */
-    if ( !strcmp(data,"dirichlet")  || !strcmp(data,"load") ) {
+    if ( !strcmp(data,"dirichlet") ) {
       fscanf(in,"%d",&ncld);
-			npar++;
+      npar++;
       for (i=lsst->sol.nbcl; i<lsst->sol.nbcl+ncld; i++) {
         pcl = &lsst->sol.cl[i];
-        if ( !strcmp(data,"load") )             pcl->typ = Load;
-        else  if ( !strcmp(data,"dirichlet") )  pcl->typ = Dirichlet;
-
-        /* check for entity */
-        fscanf(in,"%d %s ",&pcl->ref,buf);
+        pcl->typ = Dirichlet;
+        fscanf(in,"%d %s %c",&pcl->ref,buf,&pcl->att);
+        
         for (j=0; j<strlen(buf); j++)  buf[j] = tolower(buf[j]);
-        fscanf(in,"%c",&pcl->att);
         pcl->att = tolower(pcl->att);
-        if ( (pcl->typ == Dirichlet) && (pcl->att != 'v' && pcl->att != 'f') ) {
-          fprintf(stdout,"\n # wrong format: %s %c\n",buf,pcl->att);
-          continue;
+        if ( !strchr("fv",pcl->att) ) {
+          fprintf(stdout,"\n # wrong format: [%s] %c\n",buf,pcl->att);
+          return(0);
         }
-        else if ( (pcl->typ == Load) && (pcl->att != 'v' && pcl->att != 'f' && pcl->att != 'n') ) {
-          fprintf(stdout,"\n # wrong format: %s %c\n",buf,pcl->att);
-          continue;
+        if ( pcl->att == 'v' ) {
+          for (j=0; j<lsst->info.dim; j++)  fscanf(in,"%lf",&pcl->u[j]);
         }
         if ( !strcmp(buf,"vertices") || !strcmp(buf,"vertex") )          pcl->elt = LS_ver;
         else if ( !strcmp(buf,"edges") || !strcmp(buf,"edge") )          pcl->elt = LS_edg;
         else if ( !strcmp(buf,"triangles") || !strcmp(buf,"triangle") )  pcl->elt = LS_tri;
-
-        if ( pcl->att != 'f' && pcl->att != 'n' ) {
-          for (j=0; j<lsst->info.dim; j++) {
-            fscanf(in,"%f ",&fp1);
-            pcl->u[j] = fp1;
-          }
+      }
+      lsst->sol.nbcl += ncld;
+    }
+    /* traction forces */
+    else  if ( !strcmp(data,"load") ) {
+      fscanf(in,"%d",&ncld);
+      npar++;
+      for (i=lsst->sol.nbcl; i<lsst->sol.nbcl+ncld; i++) {
+        pcl = &lsst->sol.cl[i];
+        pcl->typ = Load;
+        fscanf(in,"%d %s %c",&pcl->ref,buf,&pcl->att);
+        
+        for (j=0; j<strlen(buf); j++)  buf[j] = tolower(buf[j]);
+        pcl->att = tolower(pcl->att);
+        if ( !strchr("fnv",pcl->att) ) {
+          fprintf(stdout,"\n # wrong format: [%s] %c\n",buf,pcl->att);
+          return(0);
         }
-        else if ( pcl->att == 'n' ) {
-          fscanf(in,"%f ",&fp1);
-          pcl->u[0] = fp1;
+        if ( pcl->att == 'v' ) {
+          for (j=0; j<lsst->info.dim; j++)  fscanf(in,"%lf",&pcl->u[j]);
+        }
+        else if ( pcl->att == 'n' )  fscanf(in,"%lf ",&pcl->u[0]);
+        
+        if ( !strcmp(buf,"vertices") || !strcmp(buf,"vertex") )          pcl->elt = LS_ver;
+        else if ( !strcmp(buf,"edges") || !strcmp(buf,"edge") )          pcl->elt = LS_edg;
+        else if ( !strcmp(buf,"triangles") || !strcmp(buf,"triangle") )  pcl->elt = LS_tri;
+        
+        /* for the time being: no normal et vertices known */
+        if ( (pcl->elt == LS_ver) && (pcl->att == 'n') ) {
+          fprintf(stdout,"\n # condition not allowed: [%s] %c\n",buf,pcl->att);
+          return(0);
         }
       }
       lsst->sol.nbcl += ncld;
@@ -262,7 +281,7 @@ static int parsop(LSst *lsst) {
     /* gravity or body force */
     else if ( !strcmp(data,"gravity") ) {
 			npar++;
-      lsst->info.load |= (1 << 0);
+      lsst->info.load += Gravity;
       for (j=0; j<lsst->info.dim; j++) {
         fscanf(in,"%f ",&fp1);
         lsst->info.gr[j] = fp1;
@@ -296,12 +315,10 @@ static int parsop(LSst *lsst) {
 
   for (i=0; i<lsst->sol.nbcl; i++) {
     pcl = &lsst->sol.cl[i];
-		lsst->sol.cltyp |= pcl->elt;
+		lsst->sol.cltyp |= pcl->typ;
   }
 
-  if ( npar > 0 && lsst->info.verb != '0' ) {
-    fprintf(stdout," %d conditions\n",npar);
-  }
+  if ( (npar > 0) && (lsst->info.verb != '0') )  fprintf(stdout," %d parameters\n",npar);
 
   return(1);
 }

@@ -48,16 +48,14 @@ static inline double area_2d(double *a,double *b,double *c) {
 
 /* return length of edge + outer normal to segment */ 
 static double length(double *a,double *b,double n[2]) {
-  double   ax,ay,dd;
+  double   dd;
 
-  ax = b[0] - a[0];
-  ay = b[1] - a[1];
-  n[0] = -ay;
-  n[1] =  ax;
-  dd   = sqrt(ax*ax + ay*ay);
+  n[0] = -(b[1] - a[1]);
+  n[1] =   b[0] - a[0];
+  dd   = sqrt(n[0]*n[0] + n[1]*n[1]);
   if ( dd > LS_EPSD ) {
-    n[0] *= 1.0 / dd;
-    n[1] *= 1.0 / dd;
+    n[0] /= dd;
+    n[1] /= dd;
   }
   return(dd);
 }
@@ -65,6 +63,7 @@ static double length(double *a,double *b,double n[2]) {
 static int setTGV_2d(LSst *lsst,pCsr A) {
 	pCl      pcl;
   pPoint   ppt;
+  pEdge    pa;
   int      k;
 
   /* at vertices */
@@ -75,6 +74,18 @@ static int setTGV_2d(LSst *lsst,pCsr A) {
       if ( pcl && pcl->typ == Dirichlet ) {
         csrSet(A,2*(k-1)+0,2*(k-1)+0,LS_TGV);
         csrSet(A,2*(k-1)+1,2*(k-1)+1,LS_TGV);
+      }
+    }
+  }
+  else if ( lsst->sol.cltyp & LS_edg ) {
+    for (k=1; k<=lsst->info.na; k++) {
+      pa  = &lsst->mesh.edge[k];
+      pcl = getCl(&lsst->sol,pa->ref,LS_edg);
+      if ( pcl && pcl->typ == Dirichlet ) {
+        csrSet(A,2*(pa->v[0]-1)+0,2*(pa->v[0]-1)+0,LS_TGV);
+        csrSet(A,2*(pa->v[0]-1)+1,2*(pa->v[0]-1)+1,LS_TGV);
+        csrSet(A,2*(pa->v[1]-1)+0,2*(pa->v[1]-1)+0,LS_TGV);
+        csrSet(A,2*(pa->v[1]-1)+1,2*(pa->v[1]-1)+1,LS_TGV);
       }
     }
   }
@@ -108,12 +119,12 @@ static pCsr matA_P1_2d(LSst *lsst) {
     DeD[1][1] = DeD[1][2] = DeD[2][1] = DeD[2][2] = mu; 
 
     /* measure of K */
-    a = &lsst->mesh.point[pt->v[0]].c[0]; 
-    b = &lsst->mesh.point[pt->v[1]].c[0]; 
-    c = &lsst->mesh.point[pt->v[2]].c[0]; 
+    a = &lsst->mesh.point[pt->v[0]].c[0];
+    b = &lsst->mesh.point[pt->v[1]].c[0];
+    c = &lsst->mesh.point[pt->v[2]].c[0];
 
     /* m = tBT^-1 */
-    det  = (b[1]-c[1])*(a[0]-c[0])-(a[1]-c[1])*(b[0]-c[0]);
+    det  = (b[1]-c[1])*(a[0]-c[0]) - (a[1]-c[1])*(b[0]-c[0]);
     if ( det < LS_EPSD )  continue;
     idet = 1.0 / det;
     m[0][0] = idet*(b[1]-c[1]);    m[0][1] = idet*(c[1]-a[1]);
@@ -182,7 +193,7 @@ static double *rhsF_P1_2d(LSst *lsst) {
   pPoint   ppt;
   pCl      pcl,pcl1;
   double  *F,*va,*vp,area,lon,n[2],w[2],*a,*b,*c;
-  int      k,ig,size;
+  int      k,ig,nc,size;
   char     i;
 
   if ( lsst->info.verb == '+' )  fprintf(stdout,"     gravity and body forces\n");
@@ -191,10 +202,10 @@ static double *rhsF_P1_2d(LSst *lsst) {
   assert(F);
 
   /* gravity as external force */
-  if ( lsst->info.load && (1<<0) ) {
+  if ( lsst->info.load & Gravity ) {
+    nc = 0;
     for (k=1; k<=lsst->info.nt; k++) {
       pt = &lsst->mesh.tria[k];
-      if ( !pt->v[0] )  continue;
 
       /* measure of K */
       a = &lsst->mesh.point[pt->v[0]].c[0]; 
@@ -206,14 +217,16 @@ static double *rhsF_P1_2d(LSst *lsst) {
         F[2*(ig-1)+0] += area * lsst->info.gr[0];
         F[2*(ig-1)+1] += area * lsst->info.gr[1];
       }
+      nc++;
     }
+    if ( lsst->info.verb == '+' && nc > 0 )  fprintf(stdout,"     %d gravity values assigned\n",nc);
   }
 
   /* nodal boundary conditions */
   if ( lsst->sol.cltyp & LS_ver ) {
+    nc = 0;
     for (k=1; k<=lsst->info.np; k++) {
       ppt = &lsst->mesh.point[k];
-      if ( !ppt->ref )  continue;
       pcl = getCl(&lsst->sol,ppt->ref,LS_ver);
       if ( !pcl )  continue;
       else if ( pcl->typ == Dirichlet ) {
@@ -221,46 +234,55 @@ static double *rhsF_P1_2d(LSst *lsst) {
         F[2*(k-1)+0] = LS_TGV * vp[0];
         F[2*(k-1)+1] = LS_TGV * vp[1];
       }
+      else if ( pcl->typ == Load ) {
+        vp = pcl->att == 'f' ? &lsst->sol.u[2*(k-1)] : &pcl->u[0];
+        F[2*(k-1)+0] = vp[0];
+        F[2*(k-1)+1] = vp[1];
+      }
+      nc++;
     }
+    if ( lsst->info.verb == '+' && nc > 0 )  fprintf(stdout,"     %d nodal values\n",nc);
   }
 
-  /* external load along boundary edges (01/2011) */
+  /* external load along boundary edges */
   if ( lsst->sol.cltyp & LS_edg ) {
+    nc = 0;
     for (k=1; k<=lsst->info.na; k++) {
       pa  = &lsst->mesh.edge[k];
-      if ( !pa->ref )  continue;
       pcl = getCl(&lsst->sol,pa->ref,LS_edg);
       if ( !pcl )  continue;
       else if ( pcl->typ == Dirichlet ) {
         va = pcl->att == 'f' ? &lsst->sol.u[2*(k-1)] : &pcl->u[0];
-        for (i=0; i<2; i++) {
-          ppt = &lsst->mesh.point[pa->v[i]];
-          if ( pa->ref != ppt->ref ) {
-            pcl1 = getCl(&lsst->sol,ppt->ref,LS_edg);
-            vp = pcl1->att == 'f' ? &lsst->sol.u[2*(pa->v[i]-1)] : &pcl1->u[0];
-            F[2*(pa->v[i]-1)+0] = LS_TGV * vp[0];
-            F[2*(pa->v[i]-1)+1] = LS_TGV * vp[1];
-          }
-          else {
-            F[2*(pa->v[i]-1)+0] = LS_TGV * va[0];
-            F[2*(pa->v[i]-1)+1] = LS_TGV * va[1];            
-          }
-        }
+        w[0] = LS_TGV * va[0];
+        w[1] = LS_TGV * va[1];
+        F[2*(pa->v[0]-1)+0] = w[0];
+        F[2*(pa->v[0]-1)+1] = w[1];
+        F[2*(pa->v[1]-1)+0] = w[0];
+        F[2*(pa->v[1]-1)+1] = w[1];
+        nc++;
       }
       /* load along normal direction (normal component) */
       else if ( pcl->typ == Load ) {
         a = &lsst->mesh.point[pa->v[0]].c[0];
         b = &lsst->mesh.point[pa->v[1]].c[0];
-        lon = length(a,b,n) / 2.0;
-        w[0] = pcl->u[0] * n[0];
-        w[1] = pcl->u[0] * n[1];
-        for (i=0; i<2; i++) {
-          ig  = pa->v[i];
-          F[2*(ig-1)+0] += lon * w[0];
-          F[2*(ig-1)+1] += lon * w[1];
+        lon = length(a,b,n);
+        if ( pcl->att == 'n' ) {
+          w[0] = 0.5 * lon * pcl->u[0] * n[0];
+          w[1] = 0.5 * lon * pcl->u[0] * n[1];
         }
+        else {
+          va = pcl->att == 'f' ? &lsst->sol.u[2*(k-1)] : &pcl->u[0];
+          w[0] = 0.5 * lon * va[0];
+          w[1] = 0.5 * lon * va[0];
+        }
+        F[2*(pa->v[0]-1)+0] += w[0];
+        F[2*(pa->v[0]-1)+1] += w[1];
+        F[2*(pa->v[1]-1)+0] += w[0];
+        F[2*(pa->v[1]-1)+1] += w[1];
+        nc++;
       }
     }
+    if ( lsst->info.verb == '+' && nc > 0 )  fprintf(stdout,"     %d load values\n",nc);
   }
 
   return(F);
