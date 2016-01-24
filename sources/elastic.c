@@ -102,6 +102,17 @@ static int parsar(int argc,char *argv[],LSst *lsst) {
           usage(argv[0]);
         }
         break;
+      case 'o':
+        if ( ++i < argc ) {
+          lsst->sol.nameout = argv[i];
+          ptr = strstr(lsst->sol.nameout,".sol");
+          if ( !ptr )  strcat(lsst->sol.nameout,".sol");
+        }
+        else {
+          fprintf(stdout,"%s: missing data file\n", argv[0]);
+          usage(argv[0]);
+        }
+        break;
       case 'p':
         if ( ++i < argc ) {
           lsst->sol.namepar = argv[i];
@@ -269,7 +280,7 @@ static int parsop(LSst *lsst) {
         if ( !strcmp(buf,"vertices") || !strcmp(buf,"vertex") )          pcl->elt = LS_ver;
         else if ( !strcmp(buf,"edges") || !strcmp(buf,"edge") )          pcl->elt = LS_edg;
         else if ( !strcmp(buf,"triangles") || !strcmp(buf,"triangle") )  pcl->elt = LS_tri;
-        
+
         /* for the time being: no normal et vertices known */
         if ( (pcl->elt == LS_ver) && (pcl->att == 'n') ) {
           fprintf(stdout,"\n # condition not allowed: [%s] %c\n",buf,pcl->att);

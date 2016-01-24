@@ -93,13 +93,14 @@ static int setTGV_2d(LSst *lsst,pCsr A) {
   return(1);
 }
 
+
 static pCsr matA_P1_2d(LSst *lsst) {
   pCsr     A;
   pTria    pt;
   double   Ae[6][6],DeD[4][4],m[2][2],mm[4][6],nn[4][6],*a,*b,*c;
   double   lambda,mu,det,idet,area;
   int      nr,nc,nbe,i,j,k,s,ia,ja,ig,jg,il,ic;
-
+  
   /* memory allocation (rough estimate) */
   nr  = nc = 2*lsst->info.np;
   nbe = 10*lsst->info.np;
@@ -111,7 +112,7 @@ static pCsr matA_P1_2d(LSst *lsst) {
   /* store values in A */
   for (k=1; k<=lsst->info.nt; k++) {
     pt = &lsst->mesh.tria[k];
-
+    
     /* tD E D */
     if ( !getMat(&lsst->sol,pt->ref,&lambda,&mu) )  continue;
     DeD[0][0] = DeD[3][3] = 2*mu + lambda;
@@ -177,9 +178,9 @@ static pCsr matA_P1_2d(LSst *lsst) {
       }
     }
   }
-
   setTGV_2d(lsst,A);
   csrPack(A);
+
   if ( lsst->info.verb == '+' )
     fprintf(stdout,"     %dx%d matrix, %.2f sparsity\n",nr,nc,100.0*A->nbe/nr/nc);
 

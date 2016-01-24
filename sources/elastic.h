@@ -34,7 +34,7 @@
 /* data structures */
 typedef struct {
   double   c[3];
-  int      ref,old;
+  int      ref,new;
 } Point;
 typedef Point * pPoint;
 
