@@ -6,8 +6,8 @@ int pack_3d(LSst *lsst) {
   pTetra    pe;
   pTria     pt;
   pEdge     pa;
-  double    l,m;
-  int      *perm,i,k,nf,id;
+  double    l,m,w[3];
+  int       i,k,nf,id;
 
   /* check if compression needed */
   nf = 0;
@@ -26,90 +26,63 @@ int pack_3d(LSst *lsst) {
     fflush(stdout);
   }
   lsst->info.zip = 1;
-  perm = (int*)calloc(lsst->info.np+1,sizeof(int));
-  assert(perm);
 
   /* compress and renum vertices */
-  nf = 0;
-  for (k=1; k<=lsst->info.np; k++) {
-    perm[k] = k;
-    id = lsst->mesh.point[k].new;
-    lsst->mesh.point[k].new = k;
-    if ( id > 0 ) {
-      nf++;
-      /* swap k and nf */
-      if ( nf < k ) {
+  nf = lsst->info.ne;
+  k  = 1;
+  while ( k < nf ) {
+    if ( lsst->mesh.point[k].new == 0 ) {
+      while ( (lsst->mesh.point[nf].new == 0) && (k < nf) )  nf--;
+      if ( k < nf ) {
+        /* swap k and nf */
         memcpy(&lsst->mesh.point[0],&lsst->mesh.point[nf],sizeof(Point));
         memcpy(&lsst->mesh.point[nf],&lsst->mesh.point[k],sizeof(Point));
         memcpy(&lsst->mesh.point[k],&lsst->mesh.point[0],sizeof(Point));
-        perm[k] = nf;
+        lsst->mesh.point[k].new  = nf;
+        lsst->mesh.point[nf].new = k;
+        
+        if ( lsst->sol.u ) {
+          memcpy(&w,&lsst->sol.u[3*(nf-1)],3*sizeof(double));
+          memcpy(&lsst->sol.u[3*(nf-1)],&lsst->sol.u[3*(k-1)],3*sizeof(double));
+          memcpy(&lsst->sol.u[3*(k-1)],&w,3*sizeof(double));
+        }
       }
-    }
-  }
-  lsst->info.np = nf;
-
-  /* renum edges */
-  nf = 0;
-  for (k=1; k<=lsst->info.na; k++) {
-    pa = &lsst->mesh.edge[k];
-    if ( perm[pa->v[0]] <= lsst->info.np && perm[pa->v[1]] <= lsst->info.np ) {
       nf++;
-      if ( nf < k )
-        memcpy(&lsst->mesh.edge[nf],&lsst->mesh.edge[k],sizeof(Edge));
-      pa = &lsst->mesh.edge[nf];
-      pa->v[0] = perm[pa->v[0]];
-      pa->v[1] = perm[pa->v[1]];
     }
+    k++;
   }
-  lsst->info.na = nf;
-
-  /* compress and renum triangles */
-  nf = 0;
-  for (k=1; k<=lsst->info.nt; k++) {
-    pt = &lsst->mesh.tria[k];
-    if ( getMat(&lsst->sol,pt->ref,&l,&m) ) {
-      nf++;
-      if ( nf < k ) {
-        memcpy(&lsst->mesh.tria[0],&lsst->mesh.tria[nf],sizeof(Tria));
-        memcpy(&lsst->mesh.tria[nf],&lsst->mesh.tria[k],sizeof(Tria));
-        memcpy(&lsst->mesh.tria[k],&lsst->mesh.tria[0],sizeof(Tria));
-      }
-    }
-  }
-  for (k=1; k<=lsst->info.nt; k++) {
-    pt = &lsst->mesh.tria[k];
-    for (i=0; i<3; i++)  pt->v[i] = perm[pt->v[i]];
-  }
-  lsst->info.nt = nf;
+  lsst->info.np = k;
 
   /* compress and renum tetrahedra */
-  nf = 0;
-  for (k=1; k<=lsst->info.ne; k++) {
+  nf = lsst->info.ne;
+  k  = 1;
+  while ( k <= nf ) {
     pe = &lsst->mesh.tetra[k];
-    if ( getMat(&lsst->sol,pe->ref,&l,&m) ) {
-      nf++;
-      if ( nf < k ) {
-        memcpy(&lsst->mesh.tria[0],&lsst->mesh.tria[nf],sizeof(Tetra));
-        memcpy(&lsst->mesh.tria[nf],&lsst->mesh.tria[k],sizeof(Tetra));
-        memcpy(&lsst->mesh.tria[k],&lsst->mesh.tria[0],sizeof(Tetra));
-      }
+    if ( !getMat(&lsst->sol,pe->ref,&l,&m) ) {
+      while ( !getMat(&lsst->sol,lsst->mesh.tetra[nf].ref,&l,&m) && (k < nf) )  nf --;
+      /* put nf into k */
+      memcpy(&lsst->mesh.tetra[k],&lsst->mesh.tetra[nf],sizeof(Tetra));
+      nf--;
     }
+    for (i=0; i<4; i++)  pe->v[i] = lsst->mesh.point[pe->v[i]].new;
+    k++;
   }
-  for (k=1; k<=lsst->info.ne; k++) {
-    pe = &lsst->mesh.tetra[k];
-    for (i=0; i<4; i++)  pe->v[i] = perm[pe->v[i]];
-  }
-  lsst->info.ne = nf;
+  lsst->info.ne = k-1;
 
-  /* compress solution (data) */
-  if ( lsst->sol.u ) {
-		for (k=1; k<=lsst->info.npi; k++) {
-			lsst->sol.u[2*(perm[k]-1)+0] = lsst->sol.u[2*(k-1)+0];
-			lsst->sol.u[2*(perm[k]-1)+1] = lsst->sol.u[2*(k-1)+1];
-			lsst->sol.u[2*(perm[k]-1)+2] = lsst->sol.u[2*(k-1)+2];
-		}
+  /* renum triangles */
+  for (k=1; k<=lsst->info.nt; k++) {
+    pt = &lsst->mesh.tria[k];
+    pt->v[0] = lsst->mesh.point[pt->v[0]].new;
+    pt->v[1] = lsst->mesh.point[pt->v[1]].new;
+    pt->v[2] = lsst->mesh.point[pt->v[2]].new;
   }
-  free(perm);
+  
+  /* renum edges */
+  for (k=1; k<=lsst->info.na; k++) {
+    pa = &lsst->mesh.edge[k];
+    pa->v[0] = lsst->mesh.point[pa->v[0]].new;
+    pa->v[1] = lsst->mesh.point[pa->v[1]].new;
+  }
 
   if ( lsst->info.verb != '0' ) {
     fprintf(stdout,"%d vertices",lsst->info.np);
@@ -162,7 +135,7 @@ int pack_2d(LSst *lsst) {
         lsst->mesh.point[k].new  = nf;
         lsst->mesh.point[nf].new = k;
         
-        if ( lsst->sol.u ){
+        if ( lsst->sol.u ) {
           memcpy(&w,&lsst->sol.u[2*(nf-1)],2*sizeof(double));
           memcpy(&lsst->sol.u[2*(nf-1)],&lsst->sol.u[2*(k-1)],2*sizeof(double));
           memcpy(&lsst->sol.u[2*(k-1)],&w,2*sizeof(double));
