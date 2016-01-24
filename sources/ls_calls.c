@@ -15,7 +15,6 @@ LSst *LS_init(int dim,int ver,char typ,char mfree) {
   lsst->sol.mat = (Mat*)calloc(LS_MAT,sizeof(Mat));
   lsst->sol.res = LS_RES;
   lsst->sol.nit = LS_MAXIT;
-  lsst->sol.cltyp = LS_tri;  // For the time being...
 
   /* global parameters */
   lsst->info.dim    = dim;
@@ -41,8 +40,6 @@ int LS_stop(LSst *lsst) {
   free(lsst->sol.u);
 	free(lsst->sol.cl);
 	free(lsst->sol.mat);
-  if ( lsst->sol.namein )  free(lsst->sol.namein);
-	if ( lsst->sol.nameout ) free(lsst->sol.nameout);
 
   chrono(OFF,&lsst->info.ctim[0]);
   if ( lsst->info.verb != '0' ) {
@@ -65,36 +62,38 @@ void LS_setPar(LSst *lsst,char verb,int zip) {
   att= char 'v', 'f', 'n'
   elt= enum LS_ver, LS_edg, LS_tri, LS_tet */
 int LS_setBC(LSst *lsst,int typ,int ref,char att,int elt,double *u) {
+  Cl    *pcl;
   int    i;
 
-  lsst->sol.cl[lsst->sol.nbcl].typ = typ;
-  lsst->sol.cl[lsst->sol.nbcl].ref = ref;
-  lsst->sol.cl[lsst->sol.nbcl].att = att;
-  lsst->sol.cl[lsst->sol.nbcl].elt = elt;
+  pcl = &lsst->sol.cl[lsst->sol.nbcl];
+  pcl->typ = typ;
+  pcl->ref = ref;
+  pcl->att = att;
+  pcl->elt = elt;
 
-  if ( lsst->sol.cl[lsst->sol.nbcl].typ == Dirichlet ) {
-    if ( (lsst->sol.cl[lsst->sol.nbcl].att != 'v') && (lsst->sol.cl[lsst->sol.nbcl].att != 'f') ) {
-    fprintf(stdout,"  %%%% Wrong format\n");
-    return(0);
-      }
+  if ( pcl->typ == Dirichlet ) {
+    if ( !strchr("fv",pcl->att) ) {
+      fprintf(stdout,"\n # wrong format: %c\n",pcl->att);
+      return(0);
+    }
   }
-  else if ( lsst->sol.cl[lsst->sol.nbcl].typ == Load ) {
-    if ( (lsst->sol.cl[lsst->sol.nbcl].att != 'v') && (lsst->sol.cl[lsst->sol.nbcl].att != 'f') \
-        && (lsst->sol.cl[lsst->sol.nbcl].att != 'n') ) {
-      fprintf(stdout,"  %%%% Wrong format\n");
+  else if ( pcl->typ == Load ) {
+    if ( !strchr("fnv",pcl->att) ) {
+      if ( lsst->info.verb != '0' )  fprintf(stdout,"\n # wrong format: %c\n",pcl->att);
+      return(0);
+    }
+    if ( (pcl->elt == LS_ver) && (pcl->att == 'n') ) {
+      if ( lsst->info.verb != '0' )  fprintf(stdout,"\n # condition not allowed: %c\n",pcl->att);
       return(0);
     }
   }
 
-  if ( lsst->sol.cl[lsst->sol.nbcl].att == 'v' ) {
-    for (i=0; i<lsst->info.dim; i++) {
-      lsst->sol.cl[lsst->sol.nbcl].u[i] = u[i];
-    }
+  if ( pcl->att == 'v' ) {
+    for (i=0; i<lsst->info.dim; i++)  pcl->u[i] = u[i];
   }
-  else if ( lsst->sol.cl[lsst->sol.nbcl].att == 'n' ) {
-    lsst->sol.cl[lsst->sol.nbcl].u[0] = u[0];
+  else if ( pcl->att == 'n' ) {
+    pcl->u[0] = u[0];
   }
-  
   
   if ( lsst->sol.nbcl == LS_CL-1 )  return(0);
   lsst->sol.nbcl++;
@@ -107,7 +106,7 @@ int LS_setBC(LSst *lsst,int typ,int ref,char att,int elt,double *u) {
 void LS_setGra(LSst *lsst, double *gr) {
   int   i;
 
-	lsst->info.load |= (1 << 0);
+	lsst->info.load |= Gravity;
   for (i=0; i<lsst->info.dim; i++)
     lsst->info.gr[i] = gr[i];
 }
@@ -115,17 +114,17 @@ void LS_setGra(LSst *lsst, double *gr) {
 
 /* specify elasticity Lame coefficients */
 int LS_setLame(LSst *lsst,int ref,double lambda,double mu) {
-  pMat pm;
-  
+  Mat    *pm;
+
   if ( lsst->sol.nmat == LS_MAT-1 )  return(0);
   
   pm = &lsst->sol.mat[lsst->sol.nmat];
-  pm->ref = ref;
+  pm->ref    = ref;
   pm->lambda = lambda;
-  pm->mu = mu;
+  pm->mu     = mu;
   
   lsst->sol.nmat++;
-  
+
   return(1);
 }
 

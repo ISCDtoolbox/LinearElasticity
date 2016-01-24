@@ -245,7 +245,7 @@ static int parsop(LSst *lsst) {
         for (j=0; j<strlen(buf); j++)  buf[j] = tolower(buf[j]);
         pcl->att = tolower(pcl->att);
         if ( !strchr("fv",pcl->att) ) {
-          fprintf(stdout,"\n # wrong format: [%s] %c\n",buf,pcl->att);
+          if ( lsst->info.verb != '0' )  fprintf(stdout,"\n # wrong format: [%s] %c\n",buf,pcl->att);
           return(0);
         }
         if ( pcl->att == 'v' ) {
@@ -269,7 +269,7 @@ static int parsop(LSst *lsst) {
         for (j=0; j<strlen(buf); j++)  buf[j] = tolower(buf[j]);
         pcl->att = tolower(pcl->att);
         if ( !strchr("fnv",pcl->att) ) {
-          fprintf(stdout,"\n # wrong format: [%s] %c\n",buf,pcl->att);
+          if ( lsst->info.verb != '0' )  fprintf(stdout,"\n # wrong format: [%s] %c\n",buf,pcl->att);
           return(0);
         }
         if ( pcl->att == 'v' ) {
@@ -283,7 +283,7 @@ static int parsop(LSst *lsst) {
 
         /* for the time being: no normal et vertices known */
         if ( (pcl->elt == LS_ver) && (pcl->att == 'n') ) {
-          fprintf(stdout,"\n # condition not allowed: [%s] %c\n",buf,pcl->att);
+          if ( lsst->info.verb != '0' )  fprintf(stdout,"\n # condition not allowed: [%s] %c\n",buf,pcl->att);
           return(0);
         }
       }
@@ -292,7 +292,7 @@ static int parsop(LSst *lsst) {
     /* gravity or body force */
     else if ( !strcmp(data,"gravity") ) {
 			npar++;
-      lsst->info.load += Gravity;
+      lsst->info.load |= Gravity;
       for (j=0; j<lsst->info.dim; j++) {
         fscanf(in,"%f ",&fp1);
         lsst->info.gr[j] = fp1;
@@ -450,6 +450,8 @@ int main(int argc,char **argv) {
 
   /* free mem */
 	free(lsst.sol.u);
+	free(lsst.sol.cl);
+	free(lsst.sol.mat);
 
   chrono(OFF,&lsst.info.ctim[0]);
   if ( lsst.info.verb != '0' ) {
