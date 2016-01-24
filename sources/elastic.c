@@ -310,7 +310,7 @@ static int parsop(LSst *lsst) {
         pm->mu     = fp2;
       }
     }
-    else if ( !strcmp(data,"youngpoisson") ) {
+    else if ( !strcmp(data,"young") ) {
 			npar++;
       fscanf(in,"%d",&ncld);
       lsst->sol.nmat = ncld;
