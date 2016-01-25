@@ -112,10 +112,10 @@ static pCsr matA_P1_2d(LSst *lsst) {
   /* store values in A */
   for (k=1; k<=lsst->info.nt; k++) {
     pt = &lsst->mesh.tria[k];
-    
+
     /* tD E D */
     if ( !getMat(&lsst->sol,pt->ref,&lambda,&mu) )  continue;
-    DeD[0][0] = DeD[3][3] = 2*mu + lambda;
+    DeD[0][0] = DeD[3][3] = 2.0*mu + lambda;
     DeD[0][3] = DeD[3][0] = lambda;
     DeD[1][1] = DeD[1][2] = DeD[2][1] = DeD[2][2] = mu; 
 
@@ -126,7 +126,6 @@ static pCsr matA_P1_2d(LSst *lsst) {
 
     /* m = tBT^-1 */
     det  = (b[1]-c[1])*(a[0]-c[0]) - (a[1]-c[1])*(b[0]-c[0]);
-    if ( det < LS_EPSD )  continue;
     idet = 1.0 / det;
     m[0][0] = idet*(b[1]-c[1]);    m[0][1] = idet*(c[1]-a[1]);
     m[1][0] = idet*(c[0]-b[0]);    m[1][1] = idet*(a[0]-c[0]);
@@ -153,8 +152,9 @@ static pCsr matA_P1_2d(LSst *lsst) {
     /* Ae = tmm * nn */
     for (i=0; i<6; i++) {
       for (j=i; j<6; j++) {
-        for (s=0; s<4; s++)
+        for (s=0; s<4; s++) {
           Ae[i][j] += area * mm[s][i] * nn[s][j];
+        }
       }
     }
 
@@ -226,7 +226,7 @@ static double *rhsF_P1_2d(LSst *lsst) {
       }
       nc++;
     }
-    if ( lsst->info.verb == '+' && nc > 0 )  fprintf(stdout,"     %d gravity values assigned\n",nc);
+    if ( lsst->info.verb == '+' )  fprintf(stdout,"     %d gravity values assigned\n",nc);
   }
 
   /* nodal boundary conditions */

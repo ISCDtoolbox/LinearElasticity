@@ -25,7 +25,7 @@
 #define LS_RES        1.0e-6
 #define LS_MAXIT      10000
 #define LS_TGV        1.e+30
-#define LS_EPSD       1.e-30
+#define LS_EPSD       1.e-200
 
 #define LS_MAX(a,b)   ( ((a) < (b)) ? (b) : (a) )
 #define LS_MIN(a,b)   ( ((a) < (b)) ? (a) : (b) )
