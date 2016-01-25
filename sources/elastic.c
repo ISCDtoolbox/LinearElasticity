@@ -293,10 +293,8 @@ static int parsop(LSst *lsst) {
     else if ( !strcmp(data,"gravity") ) {
 			npar++;
       lsst->info.load |= Gravity;
-      for (j=0; j<lsst->info.dim; j++) {
-        fscanf(in,"%f ",&fp1);
-        lsst->info.gr[j] = fp1;
-      }
+      for (j=0; j<lsst->info.dim; j++)
+        fscanf(in,"%lf",&lsst->info.gr[j]);
     }
     else if ( !strcmp(data,"lame") ) {
 			npar++;
@@ -305,9 +303,7 @@ static int parsop(LSst *lsst) {
       lsst->sol.nmat = ncld;
       for (i=0; i<ncld; i++) {
         pm = &lsst->sol.mat[i];
-        fscanf(in,"%d %f %f\n",&pm->ref,&fp1,&fp2);
-        pm->lambda = fp1;
-        pm->mu     = fp2;
+        fscanf(in,"%d %lf %lf",&pm->ref,&pm->lambda,&pm->mu);
       }
     }
     else if ( !strcmp(data,"young") ) {
@@ -316,7 +312,7 @@ static int parsop(LSst *lsst) {
       lsst->sol.nmat = ncld;
       for (i=0; i<ncld; i++) {
         pm = &lsst->sol.mat[i];
-        fscanf(in,"%d %f %f\n",&pm->ref,&fp1,&fp2);
+        fscanf(in,"%d %f %f",&pm->ref,&fp1,&fp2);
         pm->lambda = (fp1 * fp2) / ((1.0+fp2) * (1.0-2.0*fp2));
         pm->mu     = fp1 / (2.0*( 1.0+fp2));
       }

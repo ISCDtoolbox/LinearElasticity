@@ -99,7 +99,7 @@ int pack_3d(LSst *lsst) {
 /* mesh renumbering and packing */
 int pack_2d(LSst *lsst) {
   pTria     pt;
-  pEdge     pa,pa1;
+  pEdge     pa;
   double    l,m,w[2];
   int       i,k,nf,id;
 
@@ -184,8 +184,8 @@ int pack_2d(LSst *lsst) {
 /* restore solution at initial vertices */
 int unpack(LSst *lsst) {
   pPoint  ppt;
-	double  w[2];
-  int     k;
+	double  w[3];
+  int     k,dim;
 	char    i;
 
   if ( lsst->info.verb != '0' ) {
@@ -193,12 +193,13 @@ int unpack(LSst *lsst) {
     fflush(stdout);
   }
 
+  dim = lsst->info.dim;
   for (k=1; k<=lsst->info.np; k++) {
     ppt = &lsst->mesh.point[k];
     if ( ppt->new != k ) {
-      memcpy(&w,&lsst->sol.u[2*(k-1)+0],2*sizeof(double));
-      memcpy(&lsst->sol.u[2*(k-1)+0],&lsst->sol.u[2*(ppt->new-1)+0],2*sizeof(double));
-      memcpy(&lsst->sol.u[2*(ppt->new-1)+0],&w,2*sizeof(double));
+      memcpy(&w,&lsst->sol.u[dim*(k-1)+0],dim*sizeof(double));
+      memcpy(&lsst->sol.u[dim*(k-1)+0],&lsst->sol.u[dim*(ppt->new-1)+0],dim*sizeof(double));
+      memcpy(&lsst->sol.u[dim*(ppt->new-1)+0],&w,dim*sizeof(double));
     }
   }
   lsst->info.np = lsst->info.npi;
@@ -209,6 +210,7 @@ int unpack(LSst *lsst) {
   if ( lsst->info.verb != '0' ) {
     fprintf(stdout,"%d data vectors\n",lsst->info.np);
   }
+
   return(1);
 }
 
