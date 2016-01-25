@@ -19,6 +19,8 @@ int getMat(pSol sol,int ref,double *lambda,double *mu) {
   pMat   pm;
   int    i;
 
+  *lambda = LS_LAMBDA;
+  *mu     = LS_MU;
   if ( sol->nmat == 0 )  return(1);
   for (i=0; i<sol->nmat; i++) {
     pm = &sol->mat[i];
@@ -28,8 +30,6 @@ int getMat(pSol sol,int ref,double *lambda,double *mu) {
       return(1);
     }
   }
-  *lambda = LS_LAMBDA;
-  *mu     = LS_MU;
 
   return(0);
 }
@@ -187,6 +187,12 @@ static pCsr matA_P1_2d(LSst *lsst) {
   return(A);
 }
 
+
+static pCsr matA_P2_2d(LSst *lsst) {
+  return(0);
+}
+
+
 /* build right hand side vector and set boundary conds. */
 static double *rhsF_P1_2d(LSst *lsst) {
   pTria    pt;
@@ -290,6 +296,12 @@ static double *rhsF_P1_2d(LSst *lsst) {
 }
 
 
+/* build right hand side vector and set boundary conds. */
+static double *rhsF_P2_2d(LSst *lsst) {
+  return(0);
+}
+
+
 /* 2d linear elasticity */
 int elasti1_2d(LSst *lsst) {
   pCsr     A;
@@ -316,19 +328,8 @@ int elasti1_2d(LSst *lsst) {
   }
 
   /* build matrix */
-  A = 0;
-  F = 0;
-
-	if ( lsst->info.typ == P1 ) {
-    A = matA_P1_2d(lsst);
-    F = rhsF_P1_2d(lsst);
-	}
-  else {
-    /*
-		A = matA_P2_2d(mesh,sol);
-    F = rhsF_P2_2d(mesh,sol);
-		*/
-  }
+  A = lsst->info.typ == P1 ? matA_P1_2d(lsst) : matA_P2_2d(lsst);
+  F = lsst->info.typ == P1 ? rhsF_P1_2d(lsst) : rhsF_P2_2d(lsst);
 
   /* free mesh structure + boundary conditions */
   if ( lsst->info.mfree ) {
