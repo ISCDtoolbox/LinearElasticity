@@ -2,6 +2,26 @@
 Elastic is a simple yet efficient finite element solver for linear elasticity problems in two and three dimensions.
 
 #### Installation
+Download the zip archive of LinearElasticity or clone this repository:
+```
+git clone https://github.com/ICStoolbox/LinearElasticity.git 
+```
+
+Automatic and manual installation are available.
+
+##### Automatic installation
+
+1. navigate to the downloaded directory: 
+
+   ` cd LinearElasticity `
+
+2. execute the installation script, which will install the [ICS Commons Library](https://github.com/ICStoolbox/Commons) on your system, along with the LinearElasticity library and executable, located in ~/lib/ and ~/bin/:
+
+   ` sh install.sh `
+
+
+##### Manual installation
+
 1. you will need to install the [ICS Commons Library](https://github.com/ICStoolbox/Commons) on your system. 
 Please refer to the instructions provided on the ICS Commons Library page in order to install this library.
 
