@@ -15,6 +15,8 @@ LSst *LS_init(int dim,int ver,char typ,char mfree) {
   lsst->sol.mat = (Mat*)calloc(LS_MAT,sizeof(Mat));
   lsst->sol.res = LS_RES;
   lsst->sol.nit = LS_MAXIT;
+  lsst->sol.nbcl = 0;
+  lsst->sol.nmat = 0;
 
   /* global parameters */
   lsst->info.dim    = dim;
@@ -50,7 +52,9 @@ int LS_stop(LSst *lsst) {
 	return(1);
 }
 
-/* set params (facultative) */
+/* set params (facultative)
+  verb= '-', '0', '+'
+  zip = 0 / 1 */
 void LS_setPar(LSst *lsst,char verb,int zip) {
 	lsst->info.verb = verb;
 	lsst->info.zip  = zip;
@@ -94,7 +98,7 @@ int LS_setBC(LSst *lsst,int typ,int ref,char att,int elt,double *u) {
   else if ( pcl->att == 'n' ) {
     pcl->u[0] = u[0];
   }
-  
+
   if ( lsst->sol.nbcl == LS_CL-1 )  return(0);
   lsst->sol.nbcl++;
 
@@ -129,7 +133,7 @@ int LS_setLame(LSst *lsst,int ref,double lambda,double mu) {
 }
 
 /* Construct solution */
-int LS_CreaSol(LSst *lsst) {
+int LS_newSol(LSst *lsst) {
   
   lsst->sol.u = (double*)calloc(lsst->info.dim * (lsst->info.np+lsst->info.np2),sizeof(double));
   assert(lsst->sol.u);
@@ -228,13 +232,6 @@ void LS_headMesh(LSst *lsst,int *np,int *na,int *nt,int *ne) {
 	*na = lsst->info.na;
 	*nt = lsst->info.nt;
 	*ne = lsst->info.ne;
-
-	for (k=1; k<=lsst->info.np; k++)
-		printf("point %d : %f %f %f\n",k,lsst->mesh.point[k].c[0],lsst->mesh.point[k].c[1],lsst->mesh.point[k].c[2]);
-	
-	for (k=1; k<=lsst->info.ne; k++)
-		printf("point %d : %d %d %d %d\n",k,lsst->mesh.tetra[k].v[0],lsst->mesh.tetra[k].v[1],
-	  lsst->mesh.tetra[k].v[2],lsst->mesh.tetra[k].v[3]);
 }
 
 
@@ -265,7 +262,13 @@ double *LS_getSol(LSst *lsst) {
 
 
 int LS_elastic(LSst *lsst) {
-  int   ier;
+  int   i,ier;
+  Cl    *pcl;
+
+  for (i=0; i<lsst->sol.nbcl; i++) {
+    pcl = &lsst->sol.cl[i];
+		lsst->sol.cltyp |= pcl->typ;
+  }
 
   if ( lsst->info.dim == 2)
 		ier = elasti1_2d(lsst);

@@ -22,13 +22,13 @@ int loadMesh(LSst *lsst) {
       *ptr = '\0';
       strcat(data,".mesh");
       if ( !(inm = GmfOpenMesh(data,GmfRead,&lsst->info.ver,&lsst->info.dim)) ) {
-        fprintf(stderr," # %s file not found.\n",data);
+        fprintf(stderr," # %s: file not found.\n",data);
         return(0);
       }
     }
   }
   else if ( !(inm = GmfOpenMesh(data,GmfRead,&lsst->info.ver,&lsst->info.dim)) ) {
-    fprintf(stderr," # %s file not found.\n",data);
+    fprintf(stderr," # %s: file not found.\n",data);
     return(0);
   }
 
