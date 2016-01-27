@@ -206,7 +206,7 @@ int saveSol(LSst *lsst) {
   ptr = strstr(data,".mesh");
   if ( ptr )  {
     *ptr = '\0';
-    strcat(data,".solb");
+    strcat(data,lsst->info.ver == 1 ? ".solb" : ".sol");
   }
   else {
     ptr = strstr(data,".sol");

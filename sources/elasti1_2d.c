@@ -67,7 +67,7 @@ static int setTGV_2d(LSst *lsst,pCsr A) {
   int      k;
 
   /* at vertices */
-  if ( lsst->sol.cltyp & LS_ver ) {
+  if ( lsst->sol.clelt & LS_ver ) {
     for (k=1; k<=lsst->info.np; k++) {
       ppt = &lsst->mesh.point[k];
       pcl = getCl(&lsst->sol,ppt->ref,LS_ver);
@@ -77,7 +77,7 @@ static int setTGV_2d(LSst *lsst,pCsr A) {
       }
     }
   }
-  else if ( lsst->sol.cltyp & LS_edg ) {
+  else if ( lsst->sol.clelt & LS_edg ) {
     for (k=1; k<=lsst->info.na; k++) {
       pa  = &lsst->mesh.edge[k];
       pcl = getCl(&lsst->sol,pa->ref,LS_edg);
@@ -199,8 +199,8 @@ static double *rhsF_P1_2d(LSst *lsst) {
   pEdge    pa;
   pPoint   ppt;
   pCl      pcl,pcl1;
-  double  *F,*va,*vp,area,lon,n[2],w[2],*a,*b,*c;
-  int      k,ig,nc,size;
+  double  *F,*vp,area,lon,n[2],w[2],*a,*b,*c;
+  int      k,nc,size;
   char     i;
 
   if ( lsst->info.verb == '+' )  fprintf(stdout,"     gravity and body forces\n");
@@ -220,9 +220,8 @@ static double *rhsF_P1_2d(LSst *lsst) {
       c = &lsst->mesh.point[pt->v[2]].c[0]; 
       area = area_2d(a,b,c) / 3.0;
       for (i=0; i<3; i++) {
-        ig = pt->v[i];
-        F[2*(ig-1)+0] += area * lsst->info.gr[0];
-        F[2*(ig-1)+1] += area * lsst->info.gr[1];
+        F[2*(pt->v[i]-1)+0] += area * lsst->info.gr[0];
+        F[2*(pt->v[i]-1)+1] += area * lsst->info.gr[1];
       }
       nc++;
     }
@@ -230,7 +229,7 @@ static double *rhsF_P1_2d(LSst *lsst) {
   }
 
   /* nodal boundary conditions */
-  if ( lsst->sol.cltyp & LS_ver ) {
+  if ( lsst->sol.clelt & LS_ver ) {
     nc = 0;
     for (k=1; k<=lsst->info.np; k++) {
       ppt = &lsst->mesh.point[k];
@@ -252,16 +251,16 @@ static double *rhsF_P1_2d(LSst *lsst) {
   }
 
   /* external load along boundary edges */
-  if ( lsst->sol.cltyp & LS_edg ) {
+  if ( lsst->sol.clelt & LS_edg ) {
     nc = 0;
     for (k=1; k<=lsst->info.na; k++) {
       pa  = &lsst->mesh.edge[k];
       pcl = getCl(&lsst->sol,pa->ref,LS_edg);
       if ( !pcl )  continue;
       else if ( pcl->typ == Dirichlet ) {
-        va = pcl->att == 'f' ? &lsst->sol.u[2*(k-1)] : &pcl->u[0];
-        w[0] = LS_TGV * va[0];
-        w[1] = LS_TGV * va[1];
+        vp = pcl->att == 'f' ? &lsst->sol.u[2*(k-1)] : &pcl->u[0];
+        w[0] = LS_TGV * vp[0];
+        w[1] = LS_TGV * vp[1];
         F[2*(pa->v[0]-1)+0] = w[0];
         F[2*(pa->v[0]-1)+1] = w[1];
         F[2*(pa->v[1]-1)+0] = w[0];
@@ -278,9 +277,9 @@ static double *rhsF_P1_2d(LSst *lsst) {
           w[1] = 0.5 * lon * pcl->u[0] * n[1];
         }
         else {
-          va = pcl->att == 'f' ? &lsst->sol.u[2*(k-1)] : &pcl->u[0];
-          w[0] = 0.5 * lon * va[0];
-          w[1] = 0.5 * lon * va[0];
+          vp = pcl->att == 'f' ? &lsst->sol.u[2*(k-1)] : &pcl->u[0];
+          w[0] = 0.5 * lon * vp[0];
+          w[1] = 0.5 * lon * vp[1];
         }
         F[2*(pa->v[0]-1)+0] += w[0];
         F[2*(pa->v[0]-1)+1] += w[1];

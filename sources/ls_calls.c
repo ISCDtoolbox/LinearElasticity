@@ -268,6 +268,7 @@ int LS_elastic(LSst *lsst) {
   for (i=0; i<lsst->sol.nbcl; i++) {
     pcl = &lsst->sol.cl[i];
 		lsst->sol.cltyp |= pcl->typ;
+    lsst->sol.clelt |= pcl->elt;
   }
 
   if ( lsst->info.dim == 2)

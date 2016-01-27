@@ -86,7 +86,7 @@ typedef Mat * pMat;
 typedef struct {
   int      nit,iter,nbcl,nmat;
   double  *u,res;
-  char    *namein,*nameout,*namepar,cltyp;
+  char    *namein,*nameout,*namepar,cltyp,clelt;
   Cl      *cl;
   Mat     *mat;
 } Sol;

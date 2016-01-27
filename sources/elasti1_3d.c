@@ -37,11 +37,9 @@ static inline double volume(double *a,double *b,double *c,double *d) {
   ax = b[0] - a[0];
   ay = b[1] - a[1];
   az = b[2] - a[2];
-
   bx = c[0] - a[0];
   by = c[1] - a[1];
   bz = c[2] - a[2];
-
   vol = (d[0]-a[0]) * (ay*bz - az*by) + (d[1]-a[1]) * (az*bx - ax*bz) \
       + (d[2]-a[2]) * (ax*by - ay*bx);
 
@@ -84,6 +82,7 @@ static int invmatg(double m[9],double mi[9]) {
   return(1);
 }
 
+
 static int setTGV_3d(LSst *lsst,pCsr A) {
   pCl      pcl;
   pTria    ptt;
@@ -92,7 +91,7 @@ static int setTGV_3d(LSst *lsst,pCsr A) {
   char     i;
 
   /* at vertices */
-  if ( lsst->sol.cltyp & LS_ver ) {
+  if ( lsst->sol.clelt & LS_ver ) {
     for (k=1; k<=lsst->info.np+lsst->info.np2; k++) {
       ppt = &lsst->mesh.point[k];
       pcl = getCl(&lsst->sol,ppt->ref,LS_ver);
@@ -103,24 +102,18 @@ static int setTGV_3d(LSst *lsst,pCsr A) {
       }
     }
   }
-
   /* at elements nodes (triangles) */
-  if ( lsst->sol.cltyp & LS_tri ) {
-    if ( lsst->info.typ == P1 )
-		  nbpt = 3;
-	  else
-		  nbpt = 6;
+  if ( lsst->sol.clelt & LS_tri ) {
+		nbpt = lsst->info.typ == P1 ? 3 : 6;
 		for (k=1; k<=lsst->info.nt; k++) {
       ptt = &lsst->mesh.tria[k];
       if ( !ptt->v[0] )  continue;
       pcl = getCl(&lsst->sol,ptt->ref,LS_tri);
-      if ( !pcl )  continue;
-      else if ( pcl->typ == Dirichlet ) {
+      if ( pcl && pcl->typ == Dirichlet ) {
         for (i=0; i<nbpt; i++) {
-					ig = ptt->v[i];
-					csrSet(A,3*(ig-1)+0,3*(ig-1)+0,LS_TGV);
-					csrSet(A,3*(ig-1)+1,3*(ig-1)+1,LS_TGV);
-					csrSet(A,3*(ig-1)+2,3*(ig-1)+2,LS_TGV);
+					csrSet(A,3*(ptt->v[i]-1)+0,3*(ptt->v[i]-1)+0,LS_TGV);
+					csrSet(A,3*(ptt->v[i]-1)+1,3*(ptt->v[i]-1)+1,LS_TGV);
+					csrSet(A,3*(ptt->v[i]-1)+2,3*(ptt->v[i]-1)+2,LS_TGV);
         }
       }
     } 
@@ -375,11 +368,9 @@ static pCsr matA_P1_3d(LSst *lsst) {
   /* Fill stiffness matrix A */
   for (k=1; k<=lsst->info.ne; k++) {
     pt = &lsst->mesh.tetra[k];
-    if ( !pt->v[0] )  continue;
 
     /* tD E D */
     if ( !getMat(&lsst->sol,pt->ref,&lambda,&mu) )  continue;
-
     DeD[0]  = DeD[40] = DeD[80] = 2.0 * mu + lambda;
     DeD[4]  = DeD[8]  = DeD[36] = DeD[44] = DeD[72] = DeD[76] = lambda;
     DeD[10] = DeD[12] = DeD[20] = DeD[24] = DeD[28] = DeD[30] = mu; 
@@ -448,15 +439,13 @@ static pCsr matA_P1_3d(LSst *lsst) {
           il = ja;
           ic = ia;
         }
-				/* a(il,jl)= Ae[i][j]) */
         csrPut(A,il,ic,Ae[i][j]);
       }
     }
   }
-
-  /* Set large value for Dirichlet conditions */
   setTGV_3d(lsst,A);
   csrPack(A);
+
   if ( lsst->info.verb == '+' )
     fprintf(stdout,"     %dx%d matrix, %.2f sparsity\n",nr,nc,100.0*A->nbe/nr/nc);
 
@@ -471,18 +460,19 @@ static double *rhsF_3d(LSst *lsst) {
   pPoint   ppt;
   pCl      pcl;
   double  *F,*vp,aire,vol,n[3],w[3],*a,*b,*c,*d;
-  int      k,ig,nbpt,size;
+  int      k,ig,nbpt,nc,size;
   char     i;
   
+  if ( lsst->info.verb == '+' )  fprintf(stdout,"     gravity and body forces\n");
   size = lsst->info.dim * (lsst->info.np+lsst->info.np2);
   F = (double*)calloc(size,sizeof(double));
   assert(F);
 
   /* gravity as external force */
-  if ( lsst->info.load ) {
+  if ( lsst->info.load & Gravity ) {
+    nc = 0;
     for (k=1; k<=lsst->info.ne; k++) {
       pt = &lsst->mesh.tetra[k];
-      if ( !pt->v[0] )  continue;
 
       /* measure of K */
       a = &lsst->mesh.point[pt->v[0]].c[0]; 
@@ -491,16 +481,18 @@ static double *rhsF_3d(LSst *lsst) {
       d = &lsst->mesh.point[pt->v[3]].c[0];
       vol = volume(a,b,c,d) / 4.0;
       for (i=0; i<4; i++) {
-        ig = pt->v[i];
-        F[3*(ig-1)+0] += vol * lsst->info.gr[0];
-        F[3*(ig-1)+1] += vol * lsst->info.gr[1];
-        F[3*(ig-1)+2] += vol * lsst->info.gr[2];
+        F[3*(pt->v[i]-1)+0] += vol * lsst->info.gr[0];
+        F[3*(pt->v[i]-1)+1] += vol * lsst->info.gr[1];
+        F[3*(pt->v[i]-1)+2] += vol * lsst->info.gr[2];
       }
+      nc++;
     }
+    if ( lsst->info.verb == '+' )  fprintf(stdout,"     %d gravity values assigned\n",nc);
   }
 
   /* nodal boundary conditions */
-  if ( lsst->sol.cltyp & LS_ver ) {
+  if ( lsst->sol.clelt & LS_ver ) {
+    nc = 0;
     for (k=1; k<=lsst->info.np+lsst->info.np2; k++) {
       ppt = &lsst->mesh.point[k];
       pcl = getCl(&lsst->sol,ppt->ref,LS_ver);
@@ -517,26 +509,29 @@ static double *rhsF_3d(LSst *lsst) {
         F[3*(k-1)+1] += vp[1];
         F[3*(k-1)+2] += vp[2];
       }
+      nc++;
     }
+    if ( lsst->info.verb == '+' && nc > 0 )  fprintf(stdout,"     %d nodal values\n",nc);
   }
 
-	if ( lsst->info.typ == P1 )
-		nbpt = 3;
-	else
-		nbpt = 6;
-  if ( lsst->sol.cltyp & LS_tri ) {
+  /* external load along boundary triangles */
+  if ( lsst->sol.clelt & LS_tri ) {
+    nbpt = lsst->info.typ == P1 ? 3 : 6;
+    nc = 0;
     for (k=1; k<=lsst->info.nt; k++) {
       ptt = &lsst->mesh.tria[k];
-      if ( !ptt->v[0] )  continue;
       pcl = getCl(&lsst->sol,ptt->ref,LS_tri);
       if ( !pcl )  continue;
       else if ( pcl->typ == Dirichlet ) {
         for (i=0; i<nbpt; i++) {
-	        ig = ptt->v[i];
           vp = pcl->att == 'f' ? &lsst->sol.u[3*(ptt->v[i]-1)] : &pcl->u[0];
-          F[3*(ig-1)+0] = LS_TGV * vp[0];
-          F[3*(ig-1)+1] = LS_TGV * vp[1];
-          F[3*(ig-1)+2] = LS_TGV * vp[2];
+          w[0] = LS_TGV * vp[0];
+          w[1] = LS_TGV * vp[1];
+          w[2] = LS_TGV * vp[2];
+          F[3*(ptt->v[i]-1)+0] = w[0];
+          F[3*(ptt->v[i]-1)+1] = w[1];
+          F[3*(ptt->v[i]-1)+2] = w[2];
+          nc++;
         }
       }
       else if ( pcl->typ == Load ) { 
@@ -545,18 +540,26 @@ static double *rhsF_3d(LSst *lsst) {
         b = &lsst->mesh.point[ptt->v[1]].c[0];
         c = &lsst->mesh.point[ptt->v[2]].c[0];
         aire = area_3d(a,b,c,n) / nbpt;
-
-        w[0] = pcl->u[0] * n[0];
-        w[1] = pcl->u[0] * n[1];
-        w[2] = pcl->u[0] * n[2];
-        for (i=0; i<nbpt; i++) {
-          ig = ptt->v[i];
-          F[3*(ig-1)+0] += aire * w[0];
-          F[3*(ig-1)+1] += aire * w[1];
-          F[3*(ig-1)+2] += aire * w[2];
+        if ( pcl->att == 'n' ) {
+          w[0] = aire * pcl->u[0] * n[0];
+          w[1] = aire * pcl->u[0] * n[1];
+          w[2] = aire * pcl->u[0] * n[2];
         }
+        else {
+          vp = pcl->att == 'f' ? &lsst->sol.u[3*(k-1)] : &pcl->u[0];
+          w[0] = aire * vp[0];
+          w[1] = aire * vp[1];
+          w[2] = aire * vp[2];
+        }
+        for (i=0; i<nbpt; i++) {
+          F[3*(ptt->v[i]-1)+0] += w[0];
+          F[3*(ptt->v[i]-1)+1] += w[1];
+          F[3*(ptt->v[i]-1)+2] += w[2];
+        }
+        nc++;
       }
     }
+    if ( lsst->info.verb == '+' && nc > 0 )  fprintf(stdout,"     %d load values\n",nc);
   }
 
 	return(F);
@@ -590,14 +593,8 @@ int elasti1_3d(LSst *lsst) {
   }
 
   /* build matrix and right-hand side */
-	if ( lsst->info.typ == P1 ) {
-    A = matA_P1_3d(lsst);
-    F = rhsF_3d(lsst);
-  }
-  else {
-		A = matA_P2_3d(lsst);	
-    F = rhsF_3d(lsst);
-  }
+  A = lsst->info.typ == P1 ? matA_P1_3d(lsst) : matA_P2_3d(lsst);
+  F = lsst->info.typ == P1 ? rhsF_3d(lsst) : rhsF_3d(lsst);
 
   /* free mesh structure + boundary conditions */
   if ( lsst->info.mfree) {
@@ -610,7 +607,8 @@ int elasti1_3d(LSst *lsst) {
   /* -- Part II: solver */
   if ( lsst->info.verb != '0' ) {
     fprintf(stdout,"    Solving linear system:");  fflush(stdout);
-    ier = csrPrecondGrad(A,lsst->sol.u,F,&lsst->sol.res,&lsst->sol.nit,1);
+    ier = csrConjGrad(A,lsst->sol.u,F,&lsst->sol.res,&lsst->sol.nit);
+    //ier = csrPrecondGrad(A,lsst->sol.u,F,&lsst->sol.res,&lsst->sol.nit,1);
     if ( ier <= 0 )
       fprintf(stdout,"\n # convergence problem: %d\n",ier);
     else

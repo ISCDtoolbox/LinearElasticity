@@ -319,12 +319,6 @@ static int parsop(LSst *lsst) {
     }
   }
   fclose(in);
-
-  for (i=0; i<lsst->sol.nbcl; i++) {
-    pcl = &lsst->sol.cl[i];
-		lsst->sol.cltyp |= pcl->typ;
-  }
-
   if ( (npar > 0) && (lsst->info.verb != '0') )  fprintf(stdout," %d parameters\n",npar);
 
   return(1);
