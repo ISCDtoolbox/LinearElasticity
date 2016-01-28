@@ -292,9 +292,9 @@ static int parsop(LSst *lsst) {
     /* gravity or body force */
     else if ( !strcmp(data,"gravity") ) {
 			npar++;
-      lsst->info.load |= Gravity;
+      lsst->sol.cltyp |= Gravity;
       for (j=0; j<lsst->info.dim; j++)
-        fscanf(in,"%lf",&lsst->info.gr[j]);
+        fscanf(in,"%lf",&lsst->sol.gr[j]);
     }
     else if ( !strcmp(data,"lame") ) {
 			npar++;

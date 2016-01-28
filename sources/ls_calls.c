@@ -108,9 +108,9 @@ int LS_setBC(LSst *lsst,int typ,int ref,char att,int elt,double *u) {
 void LS_setGra(LSst *lsst, double *gr) {
   int   i;
 
-	lsst->info.load |= Gravity;
+	lsst->sol.cltyp |= Gravity;
   for (i=0; i<lsst->info.dim; i++)
-    lsst->info.gr[i] = gr[i];
+    lsst->sol.gr[i] = gr[i];
 }
 
 

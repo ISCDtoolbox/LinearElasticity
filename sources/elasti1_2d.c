@@ -209,7 +209,7 @@ static double *rhsF_P1_2d(LSst *lsst) {
   assert(F);
 
   /* gravity as external force */
-  if ( lsst->info.load & Gravity ) {
+  if ( lsst->sol.cltyp & Gravity ) {
     nc = 0;
     for (k=1; k<=lsst->info.nt; k++) {
       pt = &lsst->mesh.tria[k];
@@ -220,8 +220,8 @@ static double *rhsF_P1_2d(LSst *lsst) {
       c = &lsst->mesh.point[pt->v[2]].c[0]; 
       area = area_2d(a,b,c) / 3.0;
       for (i=0; i<3; i++) {
-        F[2*(pt->v[i]-1)+0] += area * lsst->info.gr[0];
-        F[2*(pt->v[i]-1)+1] += area * lsst->info.gr[1];
+        F[2*(pt->v[i]-1)+0] += area * lsst->sol.gr[0];
+        F[2*(pt->v[i]-1)+1] += area * lsst->sol.gr[1];
       }
       nc++;
     }

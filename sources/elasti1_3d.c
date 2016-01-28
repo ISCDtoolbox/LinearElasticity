@@ -469,7 +469,7 @@ static double *rhsF_3d(LSst *lsst) {
   assert(F);
 
   /* gravity as external force */
-  if ( lsst->info.load & Gravity ) {
+  if ( lsst->sol.cltyp & Gravity ) {
     nc = 0;
     for (k=1; k<=lsst->info.ne; k++) {
       pt = &lsst->mesh.tetra[k];
@@ -481,9 +481,9 @@ static double *rhsF_3d(LSst *lsst) {
       d = &lsst->mesh.point[pt->v[3]].c[0];
       vol = volume(a,b,c,d) / 4.0;
       for (i=0; i<4; i++) {
-        F[3*(pt->v[i]-1)+0] += vol * lsst->info.gr[0];
-        F[3*(pt->v[i]-1)+1] += vol * lsst->info.gr[1];
-        F[3*(pt->v[i]-1)+2] += vol * lsst->info.gr[2];
+        F[3*(pt->v[i]-1)+0] += vol * lsst->sol.gr[0];
+        F[3*(pt->v[i]-1)+1] += vol * lsst->sol.gr[1];
+        F[3*(pt->v[i]-1)+2] += vol * lsst->sol.gr[2];
       }
       nc++;
     }
