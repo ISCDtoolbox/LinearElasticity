@@ -52,9 +52,7 @@ int LS_stop(LSst *lsst) {
 	return(1);
 }
 
-/* set params (facultative)
-  verb= '-', '0', '+'
-  zip = 0 / 1 */
+/* set params (facultative): verb= '-|0|+',  zip = 0|1 */
 void LS_setPar(LSst *lsst,char verb,int zip) {
 	lsst->info.verb = verb;
 	lsst->info.zip  = zip;
@@ -140,9 +138,9 @@ int LS_newSol(LSst *lsst) {
   return(1);
 }
 
-/* Add element u[3] to solution at ip */
+/* Add element u[dim] to solution at ip */
 int LS_addSol(LSst *lsst,int ip,double *u) {
-  memcpy(&lsst->sol.u[3*(ip-1)],u,lsst->info.dim*sizeof(double));
+  memcpy(&lsst->sol.u[lsst->info.dim*(ip-1)],u,lsst->info.dim*sizeof(double));
   return(1);
 }
 

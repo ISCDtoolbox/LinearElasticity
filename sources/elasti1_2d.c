@@ -198,7 +198,7 @@ static double *rhsF_P1_2d(LSst *lsst) {
   pTria    pt;
   pEdge    pa;
   pPoint   ppt;
-  pCl      pcl,pcl1;
+  pCl      pcl;
   double  *F,*vp,area,lon,n[2],w[2],*a,*b,*c;
   int      k,nc,size;
   char     i;

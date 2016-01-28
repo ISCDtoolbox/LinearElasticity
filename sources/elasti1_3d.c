@@ -531,8 +531,8 @@ static double *rhsF_3d(LSst *lsst) {
           F[3*(ptt->v[i]-1)+0] = w[0];
           F[3*(ptt->v[i]-1)+1] = w[1];
           F[3*(ptt->v[i]-1)+2] = w[2];
-          nc++;
         }
+        nc++;
       }
       else if ( pcl->typ == Load ) { 
 				/* quadrature formula: to be modified eventually */
