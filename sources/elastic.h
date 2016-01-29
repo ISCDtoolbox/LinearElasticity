@@ -56,7 +56,7 @@ typedef Tetra * pTetra;
 typedef struct {
 	int      dim,ver;
 	int      np,np2,na,nt,ne,npi,nai,nti,nei;
-  char     verb,typ,cg,zip,mfree;
+  char     verb,typ,zip,mfree;
   mytime   ctim[TIMEMAX];
 } Info;
 
