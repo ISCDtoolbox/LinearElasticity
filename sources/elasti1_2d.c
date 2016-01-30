@@ -64,7 +64,7 @@ static int setTGV_2d(LSst *lsst,pCsr A) {
 	pCl      pcl;
   pPoint   ppt;
   pEdge    pa;
-  int      k;
+  int      k,i,dof;
 
   /* at vertices */
   if ( lsst->sol.clelt & LS_ver ) {
@@ -77,15 +77,17 @@ static int setTGV_2d(LSst *lsst,pCsr A) {
       }
     }
   }
+  /* at edge nodes */
   else if ( lsst->sol.clelt & LS_edg ) {
+    dof = lsst->info.typ == P1 ? 2 : 3;
     for (k=1; k<=lsst->info.na; k++) {
       pa  = &lsst->mesh.edge[k];
       pcl = getCl(&lsst->sol,pa->ref,LS_edg);
       if ( pcl && pcl->typ == Dirichlet ) {
-        csrSet(A,2*(pa->v[0]-1)+0,2*(pa->v[0]-1)+0,LS_TGV);
-        csrSet(A,2*(pa->v[0]-1)+1,2*(pa->v[0]-1)+1,LS_TGV);
-        csrSet(A,2*(pa->v[1]-1)+0,2*(pa->v[1]-1)+0,LS_TGV);
-        csrSet(A,2*(pa->v[1]-1)+1,2*(pa->v[1]-1)+1,LS_TGV);
+        for (i=0; i<dof; i++) {
+          csrSet(A,2*(pa->v[i]-1)+0,2*(pa->v[i]-1)+0,LS_TGV);
+          csrSet(A,2*(pa->v[i]-1)+1,2*(pa->v[i]-1)+1,LS_TGV);
+        }
       }
     }
   }
