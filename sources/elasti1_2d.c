@@ -322,7 +322,7 @@ int elasti1_2d(LSst *lsst) {
 
   /* allocating memory (for dylib) */
   if ( !lsst->sol.u ) {
-    lsst->sol.u  = (double*)calloc(lsst->info.dim * (lsst->info.np+lsst->info.np2),sizeof(double));
+    lsst->sol.u  = (double*)calloc(lsst->info.dim*(lsst->info.npi+lsst->info.np2),sizeof(double));
     assert(lsst->sol.u);
   }
 
