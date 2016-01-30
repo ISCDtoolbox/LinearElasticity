@@ -36,14 +36,7 @@ int getMat(pSol sol,int ref,double *lambda,double *mu) {
 
 /* triangle area */
 static inline double area_2d(double *a,double *b,double *c) {
-  double    ux,uy,vx,vy,dd;
-
-  ux = b[0] - a[0];
-  uy = b[1] - a[1];
-  vx = c[0] - a[0];
-  vy = c[1] - a[1];
-  dd = 0.5 * (ux*vy - uy*vx);
-  return(dd);
+  return(0.5 * ((b[0]-a[0])*(c[1]-a[1]) - (b[1]-a[1])*(c[0]-a[0])));
 }
 
 /* return length of edge + outer normal to segment */ 
@@ -202,12 +195,11 @@ static double *rhsF_P1_2d(LSst *lsst) {
   pPoint   ppt;
   pCl      pcl;
   double  *F,*vp,area,lon,n[2],w[2],*a,*b,*c;
-  int      k,nc,size;
+  int      k,nc;
   char     i;
 
   if ( lsst->info.verb == '+' )  fprintf(stdout,"     gravity and body forces\n");
-  size = lsst->info.dim * lsst->info.np;
-  F = (double*)calloc(size,sizeof(double));
+  F = (double*)calloc(lsst->info.dim * lsst->info.np,sizeof(double));
   assert(F);
 
   /* gravity as external force */
