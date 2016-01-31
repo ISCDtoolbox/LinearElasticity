@@ -195,8 +195,7 @@ static double *rhsF_P1_2d(LSst *lsst) {
   pPoint   ppt;
   pCl      pcl;
   double  *F,*vp,area,lon,n[2],w[2],*a,*b,*c;
-  int      k,nc;
-  char     i;
+  int      i,k,nc;
 
   if ( lsst->info.verb == '+' )  fprintf(stdout,"     gravity and body forces\n");
   F = (double*)calloc(lsst->info.dim * lsst->info.np,sizeof(double));

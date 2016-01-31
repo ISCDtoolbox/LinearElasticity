@@ -29,8 +29,8 @@ int pack_3d(LSst *lsst) {
 
   /* compress and renum vertices */
   nf = lsst->info.ne;
-  k  = 1;
-  while ( k < nf ) {
+  k  = 0;
+  while ( ++k < nf ) {
     if ( lsst->mesh.point[k].new == 0 ) {
       while ( (lsst->mesh.point[nf].new == 0) && (k < nf) )  nf--;
       if ( k < nf ) {
@@ -49,14 +49,13 @@ int pack_3d(LSst *lsst) {
       }
       nf++;
     }
-    k++;
   }
-  lsst->info.np = k;
+  lsst->info.np = nf;
 
   /* compress and renum tetrahedra */
   nf = lsst->info.ne;
-  k  = 1;
-  while ( k <= nf ) {
+  k  = 0;
+  while ( ++k < nf ) {
     pe = &lsst->mesh.tetra[k];
     if ( !getMat(&lsst->sol,pe->ref,&l,&m) ) {
       while ( !getMat(&lsst->sol,lsst->mesh.tetra[nf].ref,&l,&m) && (k < nf) )  nf --;
@@ -65,9 +64,8 @@ int pack_3d(LSst *lsst) {
       nf--;
     }
     for (i=0; i<4; i++)  pe->v[i] = lsst->mesh.point[pe->v[i]].new;
-    k++;
   }
-  lsst->info.ne = k-1;
+  lsst->info.ne = nf;
 
   /* renum triangles */
   for (k=1; k<=lsst->info.nt; k++) {
@@ -123,8 +121,8 @@ int pack_2d(LSst *lsst) {
 
   /* compress and realloc vertices+solution/data */
   nf = lsst->info.np;
-  k  = 1;
-  while ( k < nf ) {
+  k  = 0;
+  while ( ++k < nf ) {
     if ( lsst->mesh.point[k].new == 0 ) {
       while ( (lsst->mesh.point[nf].new == 0) && (k < nf) )  nf--;
       if ( k < nf ) {
@@ -143,14 +141,13 @@ int pack_2d(LSst *lsst) {
       }
       nf--;
     }
-    k++;
   }
-  lsst->info.np = k;
+  lsst->info.np = nf;
 
   /* compress and renum triangles */
   nf = lsst->info.nt;
-  k  = 1;
-  while ( k <= nf ) {
+  k  = 0;
+  while ( ++k < nf ) {
     pt = &lsst->mesh.tria[k];
     if ( !getMat(&lsst->sol,pt->ref,&l,&m) ) {
       while ( !getMat(&lsst->sol,lsst->mesh.tria[nf].ref,&l,&m) && (k < nf) )  nf --;
@@ -159,9 +156,8 @@ int pack_2d(LSst *lsst) {
       nf--;
     }
     for (i=0; i<3; i++)  pt->v[i] = lsst->mesh.point[pt->v[i]].new;
-    k++;
   }
-  lsst->info.nt = k-1;
+  lsst->info.nt = nf;
 
   /* simply renum edges */
   for (k=1; k<=lsst->info.na; k++) {
