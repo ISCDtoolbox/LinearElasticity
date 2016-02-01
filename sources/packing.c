@@ -97,7 +97,7 @@ int pack_3d(LSst *lsst) {
 /* mesh renumbering and packing */
 int pack_2d(LSst *lsst) {
   pTria     pt;
-  pEdge     pa;
+  pEdge     pa,pb;
   double    l,m,w[2];
   int       i,k,nf,id;
 
@@ -162,9 +162,25 @@ int pack_2d(LSst *lsst) {
   /* simply renum edges */
   for (k=1; k<=lsst->info.na; k++) {
     pa = &lsst->mesh.edge[k];
-    pa->v[0] = lsst->mesh.point[pa->v[0]].new;
-    pa->v[1] = lsst->mesh.point[pa->v[1]].new;
+    for (i=0; i<3; i++)  pa->v[i] = lsst->mesh.point[pa->v[i]].new;
   }
+  nf = lsst->info.na;
+  k  = 0;
+  while ( ++k <= nf ) {
+    pa = &lsst->mesh.edge[k];
+    if ( (pa->v[0] > lsst->info.np || pa->v[0] == 0) || 
+         (pa->v[1] > lsst->info.np || pa->v[1] == 0) ) {
+      pb = &lsst->mesh.edge[nf];
+      while ( ((pb->v[0] > lsst->info.np || pb->v[0] == 0) || 
+               (pb->v[1] > lsst->info.np || pb->v[1] == 0)) && (k < nf) ) {
+        nf--;
+        pb = &lsst->mesh.edge[nf];
+      }
+      memcpy(&lsst->mesh.edge[k],&lsst->mesh.edge[nf],sizeof(Edge));
+      nf--;
+    }
+  }
+  lsst->info.na = nf;
 
   if ( lsst->info.verb != '0' ) {
     fprintf(stdout,"%d vertices",lsst->info.np);
