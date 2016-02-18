@@ -3,20 +3,6 @@
 #define KTA     7
 #define KTB    11
 
-#define KA     31
-#define KB     57
-#define KC     79
-
-
-unsigned char inxt[3]     = {1,2,0};
-unsigned char iprv[3]     = {2,0,1};
-unsigned char idirt[4][3] = { {1,2,3}, {0,3,2}, {0,1,3}, {0,2,1} };
-
-
-/* hash mesh edges for creating P2 nodes */
-int hashar_3d(LSst *lsst) {
-  return(1);
-}
 
 /* get P2 node */
 int hashP2(Hash *hash,int a,int b) {
@@ -37,6 +23,7 @@ int hashP2(Hash *hash,int a,int b) {
 
   return(0);
 }
+
 
 static int hashPut(Hash *hash,int a,int b,int *na) {
   hedge  *ph;
@@ -84,6 +71,37 @@ static int hashPut(Hash *hash,int a,int b,int *na) {
 
 
 /* hash mesh edges for creating P2 nodes */
+int hashar_3d(LSst *lsst) {
+	pTetra  pt;
+  int     k;
+	char    i,i1,i2;
+  static int edg[6][2] = {0,1, 0,2, 0,3, 1,2, 1,3, 2,3};
+
+  /* adjust hash table params */
+  lsst->hash.siz  = lsst->info.np;
+  lsst->hash.nxt  = lsst->info.np;
+  lsst->hash.max  = 3.2*lsst->info.np + 1;
+  lsst->hash.item = (hedge*)calloc(lsst->hash.max,sizeof(hedge));
+  assert(lsst->hash.item);
+  for (k=lsst->info.np; k<lsst->hash.max; k++)  lsst->hash.item[k].nxt = k+1;
+
+  /* loop over tetrahedra */
+	lsst->info.na = 0;
+	for (k=1; k<=lsst->info.ne; k++) {
+		pt = &lsst->mesh.tetra[k];
+    /* loop over edges */
+		for (i=0; i<6; i++) {
+			i1 = edg[i][0];
+			i2 = edg[i][1];
+			hashPut(&lsst->hash,pt->v[i1],pt->v[i2],&lsst->info.na);
+		}
+	}
+
+	return(lsst->info.na);
+}
+
+
+/* hash mesh edges for creating P2 nodes */
 int hashar_2d(LSst *lsst) {
 	pTria   pt;
   int     k;
@@ -101,10 +119,9 @@ int hashar_2d(LSst *lsst) {
 	lsst->info.na = 0;
 	for (k=1; k<=lsst->info.nt; k++) {
 		pt = &lsst->mesh.tria[k];
-		if ( !pt->v[0] )  continue;
 		for (i=0; i<3; i++) {
-			i1 = inxt[i];
-			i2 = iprv[i];
+			i1 = (i+1) % 3;
+			i2 = (i+2) % 3;
 			hashPut(&lsst->hash,pt->v[i1],pt->v[i2],&lsst->info.na);
 		}
 	}
