@@ -16,11 +16,17 @@ int   LS_stop(LSst *lsst);
 int   LS_iniSol(LSst *lsst,double *u);
 int   LS_newSol(LSst *lsst);
 int   LS_addSol(LSst *lsst,int ip,double *u);
+int   LS_iniRHS(LSst *lsst,double *F);
+
 int   LS_mesh(LSst *lsst,int np,int na,int nt,int ne);
 int   LS_addVer(LSst *lsst,int idx,double *c,int ref);
 int   LS_addEdg(LSst *lsst,int idx,int *v,int ref);
 int   LS_addTri(LSst *lsst,int idx,int *v,int ref);
 int   LS_addTet(LSst *lsst,int idx,int *v,int ref);
+int   LS_allVer(LSst *lsst,int np,double *c,int *ref);
+int   LS_allEdg(LSst *lsst,int na,int *edg,int *ref);
+int   LS_allTri(LSst *lsst,int nt,int *tri,int *ref);
+int   LS_allTet(LSst *lsst,int ne,int *tet,int *ref);
 void  LS_headMesh(LSst *lsst,int *np,int *na,int *nt,int *ne);
 
 void  LS_setPar(LSst *lsst,char imp,int zip);

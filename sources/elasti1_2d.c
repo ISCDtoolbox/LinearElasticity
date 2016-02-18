@@ -297,7 +297,6 @@ static double *rhsF_P2_2d(LSst *lsst) {
 /* 2d linear elasticity */
 int elasti1_2d(LSst *lsst) {
   pCsr     A;
-  double  *F;
   int      ier;
   char     stim[32];
 
@@ -321,7 +320,7 @@ int elasti1_2d(LSst *lsst) {
 
   /* build matrix */
   A = lsst->info.typ == P1 ? matA_P1_2d(lsst) : matA_P2_2d(lsst);
-  F = lsst->info.typ == P1 ? rhsF_P1_2d(lsst) : rhsF_P2_2d(lsst);
+  lsst->sol.F = lsst->info.typ == P1 ? rhsF_P1_2d(lsst) : rhsF_P2_2d(lsst);
 
   /* free mesh structure + boundary conditions */
   if ( lsst->info.mfree ) {
@@ -333,19 +332,19 @@ int elasti1_2d(LSst *lsst) {
   /* -- Part II: solver */
   if ( lsst->info.verb != '0' ) {
     fprintf(stdout,"    Solving linear system:");  fflush(stdout);
-    ier = csrPrecondGrad(A,lsst->sol.u,F,&lsst->sol.res,&lsst->sol.nit,1);
+    ier = csrPrecondGrad(A,lsst->sol.u,lsst->sol.F,&lsst->sol.res,&lsst->sol.nit,1);
     if ( ier <= 0 )
       fprintf(stdout,"\n # convergence problem: %d\n",ier);
     else
       fprintf(stdout," %E in %d iterations\n",lsst->sol.res,lsst->sol.nit);
 	}
   else {
-    ier = csrPrecondGrad(A,lsst->sol.u,F,&lsst->sol.res,&lsst->sol.nit,1);
+    ier = csrPrecondGrad(A,lsst->sol.u,lsst->sol.F,&lsst->sol.res,&lsst->sol.nit,1);
   }
 
   /* free memory */
   csrFree(A);
-  free(F);
+  free(lsst->sol.F);
 
   return(ier > 0);
 }
