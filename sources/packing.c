@@ -5,9 +5,9 @@
 int pack_3d(LSst *lsst) {
   pTetra    pe;
   pTria     pt;
-  pEdge     pa;
+  pEdge     pa,pb;
   double    l,m,w[3];
-  int       i,k,nf,id;
+  int       i,k,dof,nf,id;
 
   /* check if compression needed */
   nf = 0;
@@ -68,19 +68,42 @@ int pack_3d(LSst *lsst) {
   lsst->info.ne = nf;
 
   /* renum triangles */
-  for (k=1; k<=lsst->info.nt; k++) {
+  nf = lsst->info.nt;
+  k  = 0;
+  while ( ++k <= nf ) {
     pt = &lsst->mesh.tria[k];
-    pt->v[0] = lsst->mesh.point[pt->v[0]].new;
-    pt->v[1] = lsst->mesh.point[pt->v[1]].new;
-    pt->v[2] = lsst->mesh.point[pt->v[2]].new;
+    if ( !getMat(&lsst->sol,pt->ref,&l,&m) ) {
+      while ( !getMat(&lsst->sol,lsst->mesh.tria[nf].ref,&l,&m) && (k < nf) )  nf --;
+      /* put nf into k */
+      memcpy(&lsst->mesh.tria[k],&lsst->mesh.tria[nf],sizeof(Tria));
+      nf--;
+    }
+    for (i=0; i<dof; i++)  pt->v[i] = lsst->mesh.point[pt->v[i]].new;
   }
+  lsst->info.nt = nf;
   
   /* renum edges */
   for (k=1; k<=lsst->info.na; k++) {
     pa = &lsst->mesh.edge[k];
-    pa->v[0] = lsst->mesh.point[pa->v[0]].new;
-    pa->v[1] = lsst->mesh.point[pa->v[1]].new;
+    for (i=0; i<3; i++)  pa->v[i] = lsst->mesh.point[pa->v[i]].new;
   }
+  nf = lsst->info.na;
+  k  = 0;
+  while ( ++k <= nf ) {
+    pa = &lsst->mesh.edge[k];
+    if ( (pa->v[0] > lsst->info.np || pa->v[0] == 0) ||
+         (pa->v[1] > lsst->info.np || pa->v[1] == 0) ) {
+      pb = &lsst->mesh.edge[nf];
+      while ( ((pb->v[0] > lsst->info.np || pb->v[0] == 0) ||
+               (pb->v[1] > lsst->info.np || pb->v[1] == 0)) && (k < nf) ) {
+        nf--;
+        pb = &lsst->mesh.edge[nf];
+      }
+      memcpy(&lsst->mesh.edge[k],&lsst->mesh.edge[nf],sizeof(Edge));
+      nf--;
+    }
+  }
+  lsst->info.na = nf;
 
   if ( lsst->info.verb != '0' ) {
     fprintf(stdout,"%d vertices",lsst->info.np);
