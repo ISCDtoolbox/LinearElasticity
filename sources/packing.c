@@ -28,7 +28,7 @@ int pack_3d(LSst *lsst) {
   lsst->info.zip = 1;
 
   /* compress and renum vertices */
-  nf = lsst->info.ne;
+  nf = lsst->info.np;
   k  = 0;
   while ( ++k <= nf ) {
     if ( lsst->mesh.point[k].new == 0 ) {

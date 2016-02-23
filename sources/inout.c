@@ -52,18 +52,10 @@ int loadMesh(LSst *lsst) {
 	dof = lsst->info.typ == P2 ? 10 : 1;  /* bound on number of nodes */
   lsst->mesh.point = (Point*)calloc(dof*lsst->info.np+1,sizeof(Point));
   assert(lsst->mesh.point);
-  if ( lsst->info.nt > 0 ) {
-    lsst->mesh.tria  = (Tria*)calloc(lsst->info.nt+1,sizeof(Tria));
-    assert(lsst->mesh.tria);
-  }
-  if ( lsst->info.ne >0 ) {
-    lsst->mesh.tetra  = (Tetra*)calloc(lsst->info.ne+1,sizeof(Tetra));
-    assert(lsst->mesh.tetra);
-  }
 
   /* 2d mesh */
+  GmfGotoKwd(inm,GmfVertices);
   if ( lsst->info.dim == 2 ) {
-    GmfGotoKwd(inm,GmfVertices);
     for (k=1; k<=lsst->info.np; k++) {
       ppt = &lsst->mesh.point[k];
       if ( lsst->info.ver == GmfFloat ) {
@@ -74,26 +66,8 @@ int loadMesh(LSst *lsst) {
       else
         GmfGetLin(inm,GmfVertices,&ppt->c[0],&ppt->c[1],&ppt->ref);
     }
-    /* read mesh edges */
-    if ( lsst->info.na > 0 ) {
-      lsst->mesh.edge  = (pEdge)calloc(lsst->info.na+1,sizeof(Edge));
-      assert(lsst->mesh.edge);
-    }
-    GmfGotoKwd(inm,GmfEdges);
-    for (k=1; k<=lsst->info.na; k++) {
-      pa = &lsst->mesh.edge[k];
-      GmfGetLin(inm,GmfEdges,&pa->v[0],&pa->v[1],&pa->ref);
-    }
-    /* read mesh triangles */
-    GmfGotoKwd(inm,GmfTriangles);
-    for (k=1; k<=lsst->info.nt; k++) {
-      pt1 = &lsst->mesh.tria[k];
-      GmfGetLin(inm,GmfTriangles,&pt1->v[0],&pt1->v[1],&pt1->v[2],&pt1->ref);
-    }
   }
-	/* 3d mesh */
   else {
-    GmfGotoKwd(inm,GmfVertices);
     for (k=1; k<=lsst->info.np; k++) {
       ppt = &lsst->mesh.point[k];
       if ( lsst->info.ver == GmfFloat ) {
@@ -105,12 +79,30 @@ int loadMesh(LSst *lsst) {
       else
         GmfGetLin(inm,GmfVertices,&ppt->c[0],&ppt->c[1],&ppt->c[2],&ppt->ref);
     }
-    /* read triangles */
+  }
+  if ( lsst->info.na > 0 ) {
+    lsst->mesh.edge  = (pEdge)calloc(lsst->info.na+1,sizeof(Edge));
+    assert(lsst->mesh.edge);
+    /* read mesh edges */
+    GmfGotoKwd(inm,GmfEdges);
+    for (k=1; k<=lsst->info.na; k++) {
+      pa = &lsst->mesh.edge[k];
+      GmfGetLin(inm,GmfEdges,&pa->v[0],&pa->v[1],&pa->ref);
+    }
+  }
+  if ( lsst->info.nt > 0 ) {
+    lsst->mesh.tria  = (Tria*)calloc(lsst->info.nt+1,sizeof(Tria));
+    assert(lsst->mesh.tria);
+    /* read mesh triangles */
     GmfGotoKwd(inm,GmfTriangles);
     for (k=1; k<=lsst->info.nt; k++) {
       pt1 = &lsst->mesh.tria[k];
       GmfGetLin(inm,GmfTriangles,&pt1->v[0],&pt1->v[1],&pt1->v[2],&pt1->ref);
     }
+  }
+  if ( lsst->info.ne > 0 ) {
+    lsst->mesh.tetra  = (Tetra*)calloc(lsst->info.ne+1,sizeof(Tetra));
+    assert(lsst->mesh.tetra);
     /* read tetrahedra */
     GmfGotoKwd(inm,GmfTetrahedra);
     for (k=1; k<=lsst->info.ne; k++) {
