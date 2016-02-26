@@ -56,7 +56,7 @@ typedef Tetra * pTetra;
 typedef struct {
 	int      dim,ver;
 	int      np,np2,na,nt,ne,npi,nai,nti,nei;
-  char     verb,typ,zip,mfree;
+  char     verb,typ,zip,mfree,xport;
   mytime   ctim[TIMEMAX];
 } Info;
 
@@ -91,33 +91,22 @@ typedef struct {
 } Sol;
 typedef Sol * pSol;
 
-/* hashing structure */
-typedef struct {
-  int   ia,ib,k,nxt;
-} hedge;
-
-typedef struct {
-  int     siz,max,nxt;
-  hedge  *item;
-} Hash;
-
 struct _LSst {
   Mesh    mesh;
 	Sol     sol;
 	Info    info;
-	Hash    hash;
 };
 
 /* prototypes */
 int  loadMesh(LSst *lsst);
 int  loadSol(LSst *lsst);
 int  saveSol(LSst *lsst);
+int  saveMesh(LSst *lsst);
 int  pack_2d(LSst *lsst);
 int  pack_3d(LSst *lsst);
 int  unpack(LSst *lsst);
 int  hashar_2d(LSst *lsst);
 int  hashar_3d(LSst *lsst);
-int  hashP2(Hash *hash,int a,int b);
 pCl  getCl(pSol sol,int ref,int elt);
 int  getMat(pSol sol,int ref,double *lambda,double *mu);
 int  elasti1_2d(LSst *lsst);

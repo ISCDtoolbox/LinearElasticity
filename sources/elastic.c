@@ -45,7 +45,7 @@ static void excfun(int sigid) {
 
 
 static void usage(char *prog) {
-  fprintf(stdout,"usage: %s [+/-v | -h] [-n nit] [-r res] [-t typ] source[.mesh] [-p param[.elas]] [-s data[.sol]] [-o output[.sol]]\n",prog);
+  fprintf(stdout,"usage: %s [+/-v | -h | -x] [-n nit] [-r res] [-t typ] source[.mesh] [-p param[.elas]] [-s data[.sol]] [-o output[.sol]]\n",prog);
   fprintf(stdout,"\nOptions and flags:\n\
   --help       show the syntax and exit.\n\
   --version    show the version and date of release and exit.\n\n\
@@ -53,7 +53,8 @@ static void usage(char *prog) {
   -r res       value of the residual (Krylov space) for convergence\n\
   -t typ       specify the type of FE space: 1: P1, 2: P2\n\
   -v           suppress any message (for use with function call).\n\
-  +v           increase the verbosity level for output.\n\n\
+  +v           increase the verbosity level for output.\n\
+  -x           export (deformed) mesh\n\n\
   source.mesh    name of the mesh file\n\
   param.elas     name of file containing elasticity parameters\n\
   data.sol       name of file containing the initial solution or boundary conditions\n\
@@ -161,6 +162,9 @@ static int parsar(int argc,char *argv[],LSst *lsst) {
           usage(argv[0]);
         }
         break;
+      case 'x':
+        lsst->info.xport = 1;
+        break;
       default:
         fprintf(stderr,"%s: illegal option %s\n",argv[0],argv[i]);
         usage(argv[0]);
@@ -195,7 +199,7 @@ static int parsar(int argc,char *argv[],LSst *lsst) {
 static int parsop(LSst *lsst) {
   Cl         *pcl;
   Mat        *pm;
-  float       fp1,fp2;
+  float       E,nu;
   int         i,j,ncld,npar,ret;
   char       *ptr,buf[256],data[256];
   FILE       *in;
@@ -312,9 +316,9 @@ static int parsop(LSst *lsst) {
       lsst->sol.nmat = ncld;
       for (i=0; i<ncld; i++) {
         pm = &lsst->sol.mat[i];
-        fscanf(in,"%d %f %f",&pm->ref,&fp1,&fp2);
-        pm->lambda = (fp1 * fp2) / ((1.0+fp2) * (1.0-2.0*fp2));
-        pm->mu     = fp1 / (2.0*( 1.0+fp2));
+        fscanf(in,"%d %f %f",&pm->ref,&E,&nu);
+        pm->lambda = (E * nu) / ((1.0+nu) * (1.0-2.0*nu));
+        pm->mu     = E / (2.0*( 1.0+nu));
       }
     }
   }
@@ -357,6 +361,7 @@ int main(int argc,char **argv) {
   lsst.info.zip    = 0;
   lsst.info.typ    = P1;
   lsst.info.mfree  = 1;
+  lsst.info.xport  = 0;
 
   /* parse command line */
   if ( !parsar(argc,argv,&lsst) )  return(1);
@@ -432,6 +437,10 @@ int main(int argc,char **argv) {
 
   ier = saveSol(&lsst);
 	if ( !ier )   return(1);
+  if ( lsst.info.xport == 1 ) {
+    ier = saveMesh(&lsst);
+    if ( !ier )  return(0);
+  }
   chrono(OFF,&lsst.info.ctim[3]);
   if ( lsst.info.verb != '0' ) {
     printim(lsst.info.ctim[3].gdif,stim);

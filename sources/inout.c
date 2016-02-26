@@ -237,3 +237,69 @@ int saveSol(LSst *lsst) {
 
   return(1);
 }
+
+
+int saveMesh(LSst *lsst) {
+  pPoint    ppt;
+  pEdge     pe;
+  pTria     ptt;
+  pTetra    pt;
+  double   *u;
+  int       k,ia,i,outm;
+  char     *ptr,data[128];
+
+  strcpy(data,lsst->sol.nameout);
+  ptr = strstr(data,".sol");
+  if ( ptr )  *ptr = '\0';
+  strcat(data,lsst->info.ver == 1 ? ".meshb" : ".mesh");
+
+  lsst->info.ver = GmfDouble;
+  if ( !(outm = GmfOpenMesh(data,GmfWrite,lsst->info.ver,lsst->info.dim)) ) {
+    fprintf(stderr," # unable to open %s\n",data);
+    return(0);
+  }
+  if ( lsst->info.verb != '0' )  fprintf(stdout,"    %s:",data);
+
+  /* write sol */
+  GmfSetKwd(outm,GmfVertices,lsst->info.np);
+  for (k=1; k<lsst->info.np; k++) {
+    ppt = &lsst->mesh.point[k];
+    u   = &lsst->sol.u[lsst->info.dim*(k-1)];
+    if ( lsst->info.dim == 2 )
+      GmfSetLin(outm,GmfVertices,ppt->c[0]+u[0],ppt->c[1]+u[1],ppt->ref);
+    else
+      GmfSetLin(outm,GmfVertices,ppt->c[0]+u[0],ppt->c[1]+u[1],ppt->c[2]+u[2],ppt->ref);
+  }
+  if ( lsst->info.nt > 0 ) {
+    GmfSetKwd(outm,GmfTriangles,lsst->info.nt);
+    for (k=1; k<=lsst->info.nt; k++) {
+      ptt = &lsst->mesh.tria[k];
+      GmfSetLin(outm,GmfTriangles,ptt->v[0],ptt->v[1],ptt->v[2],ptt->ref);
+    }
+  }
+  if ( lsst->info.ne > 0 ) {
+    GmfSetKwd(outm,GmfTetrahedra,lsst->info.ne);
+    for (k=1; k<=lsst->info.ne; k++) {
+      pt = &lsst->mesh.tetra[k];
+      GmfSetLin(outm,GmfTetrahedra,pt->v[0],pt->v[1],pt->v[2],pt->v[3],pt->ref);
+    }
+  }
+  if ( lsst->info.na > 0 ) {
+    GmfSetKwd(outm,GmfEdges,lsst->info.na);
+    for (k=1; k<=lsst->info.na; k++) {
+      pe = &lsst->mesh.edge[k];
+      GmfSetLin(outm,GmfEdges,pe->v[0],pe->v[1],pe->ref);
+    }
+  }
+  GmfCloseMesh(outm);
+
+  if ( lsst->info.verb != '0' ) {
+    fprintf(stdout," %d vertices",lsst->info.np);
+    if ( lsst->info.na )  fprintf(stdout,", %d edges",lsst->info.na);
+    if ( lsst->info.nt )  fprintf(stdout,", %d triangles",lsst->info.nt);
+    if ( lsst->info.ne )  fprintf(stdout,", %d tetrahedra",lsst->info.ne);
+    fprintf(stdout,"\n");
+  }
+
+  return(1); 
+} 

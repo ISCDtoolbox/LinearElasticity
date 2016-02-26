@@ -596,12 +596,11 @@ int elasti1_3d(LSst *lsst) {
   lsst->sol.F = lsst->info.typ == P1 ? rhsF_3d(lsst) : rhsF_3d(lsst);
 
   /* free mesh structure + boundary conditions */
-  if ( lsst->info.mfree) {
+  if ( !lsst->info.xport && lsst->info.mfree ) {
 		free(lsst->mesh.tetra);
 		if ( lsst->info.nt )    free(lsst->mesh.tria);
     if ( !lsst->info.zip )  free(lsst->mesh.point);
 	}
-  if ( lsst->info.typ == P2 )  free(lsst->hash.item);
 
   /* -- Part II: solver */
   if ( lsst->info.verb != '0' ) {

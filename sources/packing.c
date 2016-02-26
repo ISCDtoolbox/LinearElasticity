@@ -11,7 +11,7 @@ int pack_3d(LSst *lsst) {
 
   /* check if compression needed */
   nf  = 0;
-  dof = nsst->info.typ == P1 ? 4 : 10;
+  dof = lsst->info.typ == P1 ? 4 : 10;
   for (k=1; k<=lsst->info.ne; k++) {
     pe = &lsst->mesh.tetra[k];
     if ( getMat(&lsst->sol,pe->ref,&l,&m) ) {
