@@ -30,9 +30,9 @@ int pack_3d(LSst *lsst) {
   /* compress and renum vertices */
   nf = lsst->info.npi;
   k  = 1;
-  while ( k < nf ) {
+  while ( k <= nf ) {
     if ( lsst->mesh.point[k].new == 0 ) {
-      while ( (lsst->mesh.point[nf].new == 0) && (k < nf) )  nf--;
+      while ( (lsst->mesh.point[nf].new == 0) && (k <= nf) )  nf--;
       if ( k < nf ) {
         /* swap k and nf */
         memcpy(&lsst->mesh.point[0],&lsst->mesh.point[nf],sizeof(Point));
@@ -46,8 +46,8 @@ int pack_3d(LSst *lsst) {
         }
         lsst->mesh.point[k].new  = nf;
         lsst->mesh.point[nf].new = k;
+        nf--;
       }
-      nf++;
     }
     k++;
   }
@@ -61,7 +61,7 @@ int pack_3d(LSst *lsst) {
   }
   nf = lsst->info.nei;
   k  = 1;
-  while ( k < nf ) {
+  while ( k <= nf ) {
     pe = &lsst->mesh.tetra[k];
     if ( !getMat(&lsst->sol,pe->ref,&l,&m) ) {
       do {
@@ -69,10 +69,14 @@ int pack_3d(LSst *lsst) {
         if ( getMat(&lsst->sol,pe->ref,&l,&m) )  break;
         nf --;
       }
-      while ( k < nf );
+      while ( k <= nf );
       /* put nf into k */
-      if ( k < nf )  memcpy(&lsst->mesh.tetra[k],&lsst->mesh.tetra[nf],sizeof(Tetra));
-      nf--;
+      if ( k < nf ) {
+        memcpy(&lsst->mesh.tetra[0],&lsst->mesh.tetra[nf],sizeof(Tetra));
+        memcpy(&lsst->mesh.tetra[nf],&lsst->mesh.tetra[k],sizeof(Tetra));
+        memcpy(&lsst->mesh.tetra[k],&lsst->mesh.tetra[0],sizeof(Tetra));
+        nf--;
+      }
     }
     k++;
   }
@@ -86,7 +90,7 @@ int pack_3d(LSst *lsst) {
   }
   nf = lsst->info.nti;
   k  = 1;
-  while ( k < nf ) {
+  while ( k <= nf ) {
     pt = &lsst->mesh.tria[k];
     for (i=0; i<3; i++)
       if ( pt->v[i] > lsst->info.np || pt->v[i] == 0 )  break;
@@ -98,10 +102,14 @@ int pack_3d(LSst *lsst) {
         if ( i == 3 )  break;
         nf--;
       }
-      while ( k < nf );
+      while ( k <= nf );
       /* put nf in k */
-      memcpy(&lsst->mesh.tria[k],&lsst->mesh.tria[nf],sizeof(Tria));
-      nf--;
+      if ( k < nf ) {
+        memcpy(&lsst->mesh.tria[0],&lsst->mesh.tria[nf],sizeof(Tria));
+        memcpy(&lsst->mesh.tria[nf],&lsst->mesh.tria[k],sizeof(Tria));
+        memcpy(&lsst->mesh.tria[k],&lsst->mesh.tria[0],sizeof(Tria));
+        nf--;
+      }
     }
     k++;
   }
@@ -114,7 +122,7 @@ int pack_3d(LSst *lsst) {
   }
   nf = lsst->info.nai;
   k  = 1;
-  while ( k < nf ) {
+  while ( k <= nf ) {
     pa = &lsst->mesh.edge[k];
     if ( (pa->v[0] > lsst->info.np || pa->v[0] == 0) ||
          (pa->v[1] > lsst->info.np || pa->v[1] == 0) ) {
@@ -124,10 +132,12 @@ int pack_3d(LSst *lsst) {
               pa->v[1] > lsst->info.np || pa->v[1] == 0) )  break;
         nf--;
       }
-      while ( k < nf );
+      while ( k <= nf );
       /* put nf in k */
-      memcpy(&lsst->mesh.edge[k],&lsst->mesh.edge[nf],sizeof(Edge));
-      nf--;
+      if ( k < nf ) {
+        memcpy(&lsst->mesh.edge[k],&lsst->mesh.edge[nf],sizeof(Edge));
+        nf--;
+      }
     }
     k++;
   }
@@ -173,9 +183,9 @@ int pack_2d(LSst *lsst) {
   /* compress and realloc vertices+solution/data */
   nf = lsst->info.npi;
   k  = 1;
-  while ( k < nf ) {
+  while ( k <= nf ) {
     if ( lsst->mesh.point[k].new == 0 ) {
-      while ( (lsst->mesh.point[nf].new == 0) && (k < nf) )  nf--;
+      while ( (lsst->mesh.point[nf].new == 0) && (k <= nf) )  nf--;
       if ( k < nf ) {
         /* swap k and nf */
         memcpy(&lsst->mesh.point[0],&lsst->mesh.point[nf],sizeof(Point));
@@ -189,8 +199,8 @@ int pack_2d(LSst *lsst) {
         }
         lsst->mesh.point[k].new  = nf;
         lsst->mesh.point[nf].new = k;
+        nf--;
       }
-      nf--;
     }
     k++;
   }
@@ -204,7 +214,7 @@ int pack_2d(LSst *lsst) {
   }
   nf = lsst->info.nti;
   k  = 1;
-  while ( k < nf ) {
+  while ( k <= nf ) {
     pt = &lsst->mesh.tria[k];
     if ( !getMat(&lsst->sol,pt->ref,&l,&m) ) {
       do {
@@ -212,10 +222,14 @@ int pack_2d(LSst *lsst) {
         if ( getMat(&lsst->sol,pt->ref,&l,&m) )  break;
         nf--;
       }
-      while ( k < nf );
+      while ( k <= nf );
       /* put nf into k */
-      if ( k < nf )  memcpy(&lsst->mesh.tria[k],&lsst->mesh.tria[nf],sizeof(Tria));
-      nf--;
+      if ( k < nf ) {
+        memcpy(&lsst->mesh.tria[0],&lsst->mesh.tria[nf],sizeof(Tria));
+        memcpy(&lsst->mesh.tria[nf],&lsst->mesh.tria[k],sizeof(Tria));
+        memcpy(&lsst->mesh.tria[k],&lsst->mesh.tria[0],sizeof(Tria));
+        nf--;
+      }
     }
     k++;
   }
@@ -228,7 +242,7 @@ int pack_2d(LSst *lsst) {
   }
   nf = lsst->info.nai;
   k  = 1;
-  while ( k < nf ) {
+  while ( k <= nf ) {
     pa = &lsst->mesh.edge[k];
     if ( (pa->v[0] > lsst->info.np || pa->v[0] == 0) || 
          (pa->v[1] > lsst->info.np || pa->v[1] == 0) ) {
@@ -238,9 +252,12 @@ int pack_2d(LSst *lsst) {
               pa->v[1] > lsst->info.np || pa->v[1] == 0) )  break;
         nf--;
       }
-      while ( k < nf );
-      memcpy(&lsst->mesh.edge[k],&lsst->mesh.edge[nf],sizeof(Edge));
-      nf--;
+      while ( k <= nf );
+      /* put nf in k */
+      if ( k < nf ) {
+        memcpy(&lsst->mesh.edge[k],&lsst->mesh.edge[nf],sizeof(Edge));
+        nf--;
+      }
     }
     k++;
   }
