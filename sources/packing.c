@@ -93,12 +93,12 @@ int pack_3d(LSst *lsst) {
   while ( k <= nf ) {
     pt = &lsst->mesh.tria[k];
     for (i=0; i<3; i++)
-      if ( pt->v[i] > lsst->info.np || pt->v[i] == 0 )  break;
+      if ( pt->v[i] > lsst->info.np )  break;
     if ( i < 3 ) {
       do {
         pt = &lsst->mesh.tria[nf];
         for (i=0; i<3; i++)
-          if ( pt->v[i] > lsst->info.np || pt->v[i] == 0 )  break;
+          if ( pt->v[i] > lsst->info.np )  break;
         if ( i == 3 )  break;
         nf--;
       }
@@ -124,12 +124,10 @@ int pack_3d(LSst *lsst) {
   k  = 1;
   while ( k <= nf ) {
     pa = &lsst->mesh.edge[k];
-    if ( (pa->v[0] > lsst->info.np || pa->v[0] == 0) ||
-         (pa->v[1] > lsst->info.np || pa->v[1] == 0) ) {
+    if ( (pa->v[0] > lsst->info.np) || (pa->v[1] > lsst->info.np) ) {
       do {
         pa = &lsst->mesh.edge[nf];
-        if ( (pa->v[0] > lsst->info.np || pa->v[0] == 0 ||
-              pa->v[1] > lsst->info.np || pa->v[1] == 0) )  break;
+        if ( (pa->v[0] > lsst->info.np) || (pa->v[1] > lsst->info.np) )  break;
         nf--;
       }
       while ( k <= nf );
@@ -244,12 +242,10 @@ int pack_2d(LSst *lsst) {
   k  = 1;
   while ( k <= nf ) {
     pa = &lsst->mesh.edge[k];
-    if ( (pa->v[0] > lsst->info.np || pa->v[0] == 0) || 
-         (pa->v[1] > lsst->info.np || pa->v[1] == 0) ) {
+    if ( (pa->v[0] > lsst->info.np) || (pa->v[1] > lsst->info.np) ) {
       do {
         pa = &lsst->mesh.edge[nf];
-        if ( (pa->v[0] > lsst->info.np || pa->v[0] == 0 ||
-              pa->v[1] > lsst->info.np || pa->v[1] == 0) )  break;
+        if ( (pa->v[0] > lsst->info.np) || (pa->v[1] > lsst->info.np) )  break;
         nf--;
       }
       while ( k <= nf );
