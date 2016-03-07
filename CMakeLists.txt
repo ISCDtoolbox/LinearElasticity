@@ -4,6 +4,8 @@ INCLUDE_DIRECTORIES(  "$ENV{HOME}/include")
 LINK_DIRECTORIES(     "$ENV{HOME}/lib")
 SET(CMAKE_CXX_FLAGS   "-Wunused-result -Wno-dev")
 
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 #Elasticity library
 project(Elas)
 file(                  GLOB_RECURSE source_files sources/*)
