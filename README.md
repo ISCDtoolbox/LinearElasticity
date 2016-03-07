@@ -1,5 +1,4 @@
-[![Build Status](https://travis-ci.org/ICStoolbox/LinearElasticity.svg?branch=master)](https://travis-ci.org/ICStoolbox/LinearElasticity)
-# elastic
+# elastic [![Build Status](https://travis-ci.org/ICStoolbox/LinearElasticity.svg?branch=master)](https://travis-ci.org/ICStoolbox/LinearElasticity)
 Elastic is a simple yet efficient finite element solver for linear elasticity problems in two and three dimensions.
 
 #### Installation
