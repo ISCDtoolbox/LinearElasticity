@@ -20,7 +20,6 @@ script:
   - make
   - make install
   - cd ..
-after_script:
   - elastic demos/2d/carre
 notifications:
   email: false
