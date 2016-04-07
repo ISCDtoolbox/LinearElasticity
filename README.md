@@ -3,22 +3,6 @@ Elastic is a simple yet efficient finite element solver for linear elasticity pr
 
 #### Installation
 
-##### Automatic installation
-
-1. download the zip archive of LinearElasticity or clone this repository:
-
-   ` git clone https://github.com/ICStoolbox/LinearElasticity.git `
-
-   navigate to the downloaded directory: 
-
-   ` cd LinearElasticity `
-
-2. execute the installation script, which will install the [ICS Commons Library](https://github.com/ICStoolbox/Commons) on your system, along with the LinearElasticity library and executable, located in ~/lib/ and ~/bin/:
-
-   ` sh install.sh `
-
-##### Manual installation
-
 1. you will need to install the [ICS Commons Library](https://github.com/ICStoolbox/Commons) on your system. 
 Please refer to the instructions provided on the ICS Commons Library page in order to install this library.
 
@@ -36,11 +20,8 @@ Please refer to the instructions provided on the ICS Commons Library page in ord
    cd build
    cmake ..
    make
+   make install
    ```
-
-   if no errors are produced, install the binary and library
-
-   ` make install ` 
 
 #### Usage
 After compiling elastic as described above, you should have an executable file in your $HOME/bin directory. If your PATH variable is correctly set to this directory, elastic can be called with the following syntax:
