@@ -251,13 +251,11 @@ static double *rhsF_P1_2d(LSst *lsst) {
       pcl = getCl(&lsst->sol,pa->ref,LS_edg);
       if ( !pcl )  continue;
       else if ( pcl->typ == Dirichlet ) {
-        vp = pcl->att == 'f' ? &lsst->sol.u[2*(k-1)] : &pcl->u[0];
-        w[0] = LS_TGV * vp[0];
-        w[1] = LS_TGV * vp[1];
-        F[2*(pa->v[0]-1)+0] = w[0];
-        F[2*(pa->v[0]-1)+1] = w[1];
-        F[2*(pa->v[1]-1)+0] = w[0];
-        F[2*(pa->v[1]-1)+1] = w[1];
+        for (i=0; i<2; i++) {
+          vp = pcl->att == 'f' ? &lsst->sol.u[2*(pa->v[i]-1)] : &pcl->u[0];
+          F[2*(pa->v[i]-1)+0] = LS_TGV * vp[0];
+          F[2*(pa->v[i]-1)+1] = LS_TGV * vp[1];
+        }
         nc++;
       }
       /* load along normal direction (normal component) */
