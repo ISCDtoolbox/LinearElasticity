@@ -1,14 +1,14 @@
-# elastic [![Build Status](https://travis-ci.org/ICStoolbox/LinearElasticity.svg?branch=master)](https://travis-ci.org/ICStoolbox/LinearElasticity)
+# elastic [![Build Status](https://travis-ci.org/ISCDtoolbox/LinearElasticity.svg?branch=master)](https://travis-ci.org/ISCDtoolbox/LinearElasticity)
 Elastic is a simple yet efficient finite element solver for linear elasticity problems in two and three dimensions.
 
 #### Installation
 
-1. you will need to install the [ICS Commons Library](https://github.com/ICStoolbox/Commons) on your system. 
+1. you will need to install the [ISCD Commons Library](https://github.com/ISCDtoolbox/Commons) on your system. 
 Please refer to the instructions provided on the ICS Commons Library page in order to install this library.
 
 2. download the zip archive of LinearElasticity or clone this repository:
 
-   ` git clone https://github.com/ICStoolbox/LinearElasticity.git `
+   ` git clone https://github.com/ISCDtoolbox/LinearElasticity.git `
 
    navigate to the downloaded directory: 
 
@@ -46,7 +46,7 @@ The options and flags are:
     data_file.sol         name of file containing the initial solution or boundary conditions
     output_file.sol       name of the output file (displacement field)
 
-A full description of all parameters and options that can be specified in the command line or in a parameter file [file.elas] can be found in the project [wiki](https://github.com/ICStoolbox/LinearElasticity/wiki).
+A full description of all parameters and options that can be specified in the command line or in a parameter file [file.elas] can be found in the project [wiki](https://github.com/ISCDtoolbox/LinearElasticity/wiki).
 
 #### Quickstart
 You can test the installation and look at examples by entering the [demos](demos) directory and running the program:
