@@ -566,6 +566,19 @@ static double *rhsF_3d(LSst *lsst) {
 }
 
 
+void vecSave(double *u,int nr,char *name) {
+  FILE   *out;
+  int     i;
+
+  out = fopen(name,"w");
+  assert(out);
+  fprintf(out,"%d\n",nr);
+  for (i=0; i<nr; i++)
+    fprintf(out,"%lf\n",u[i]);
+  fclose(out);
+}
+
+
 /* 3d linear elasticity */
 int elasti1_3d(LSst *lsst) {
   pCsr     A;
