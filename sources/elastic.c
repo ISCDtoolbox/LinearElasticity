@@ -349,6 +349,7 @@ int main(int argc,char **argv) {
   /* init structure */
   memset(&lsst.mesh,0,sizeof(Mesh));
   memset(&lsst.sol,0,sizeof(Sol));
+  memset(&lsst.info,0,sizeof(Info));
 	lsst.sol.cl  = (Cl*)calloc(LS_CL,sizeof(Cl));
   lsst.sol.mat = (Mat*)calloc(LS_MAT,sizeof(Mat));
   lsst.sol.res = LS_RES;
@@ -362,7 +363,7 @@ int main(int argc,char **argv) {
   lsst.info.typ    = P1;
   lsst.info.mfree  = 1;
   lsst.info.xport  = 0;
-
+  
   /* parse command line */
   if ( !parsar(argc,argv,&lsst) )  return(1);
 
