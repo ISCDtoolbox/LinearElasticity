@@ -367,7 +367,7 @@ int main(int argc,char **argv) {
   /* parse command line */
   if ( !parsar(argc,argv,&lsst) )  return(1);
 
-  /* loading date */
+  /* loading data */
   chrono(ON,&lsst.info.ctim[1]);
 
   if ( lsst.info.verb != '0' ) {
@@ -377,7 +377,7 @@ int main(int argc,char **argv) {
 
   /* loading mesh */
   ier = loadMesh(&lsst);
-	if ( ier <=0 )  return(1);
+	if ( ier <= 0 )  return(1);
 
   /* parse parameters in file */
   if ( !parsop(&lsst) )  return(1);
