@@ -14,9 +14,9 @@
 #include "chrono.h"
 #include "ls_calls.h"
 
-#define LS_VER   "5.0c"
-#define LS_REL   "Jan.19, 2016"
-#define LS_CPY   "(C) Copyright 2006- , ICS-SU"
+#define LS_VER   "5.0d"
+#define LS_REL   "Apr.29, 2021"
+#define LS_CPY   "(C) Copyright 2006- , ISCD-SU"
 
 #define LS_LAMBDA     10.0e5
 #define LS_MU          8.2e5

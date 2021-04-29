@@ -334,9 +334,6 @@ int main(int argc,char **argv) {
 	int      ier;
 	char     stim[32];
 
-  tminit(lsst.info.ctim,TIMEMAX);
-  chrono(ON,&lsst.info.ctim[0]);
-
   /* trap exceptions */
   signal(SIGABRT,excfun);
   signal(SIGFPE,excfun);
@@ -347,10 +344,14 @@ int main(int argc,char **argv) {
   signal(SIGBUS,excfun);
 
   /* init structure */
+  memset(&lsst.info,0,sizeof(Info));
+  tminit(lsst.info.ctim,TIMEMAX);
+  chrono(ON,&lsst.info.ctim[0]);
+
   memset(&lsst.mesh,0,sizeof(Mesh));
   memset(&lsst.sol,0,sizeof(Sol));
-  memset(&lsst.info,0,sizeof(Info));
-	lsst.sol.cl  = (Cl*)calloc(LS_CL,sizeof(Cl));
+
+  lsst.sol.cl  = (Cl*)calloc(LS_CL,sizeof(Cl));
   lsst.sol.mat = (Mat*)calloc(LS_MAT,sizeof(Mat));
   lsst.sol.res = LS_RES;
   lsst.sol.nit = LS_MAXIT;

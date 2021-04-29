@@ -365,7 +365,7 @@ double *LS_getSol(LSst *lsst) {
 
 
 int LS_elastic(LSst *lsst) {
-  int   i,ier;
+  int    i,ier;
   Cl    *pcl;
 
   for (i=0; i<lsst->sol.nbcl; i++) {
