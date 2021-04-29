@@ -6,6 +6,8 @@ SET(CMAKE_CXX_FLAGS   "-w -g -O3")
 set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+set(CMAKE_CXX_STANDARD 17)
+
 #Elasticity library
 project(Elas)
 file(                  GLOB_RECURSE source_files sources/*)
