@@ -15,7 +15,10 @@ file(                  GLOB_RECURSE header_files sources/*.h)
 ADD_LIBRARY(           Elas SHARED ${source_files})
 find_library(          Commons NAMES Commons HINTS "$ENV{HOME}/lib")
 target_link_libraries( Elas Commons)
-INSTALL(               TARGETS Elas LIBRARY  DESTINATION "$ENV{HOME}/lib")
+INSTALL(
+  TARGETS Elas
+  LIBRARY  DESTINATION "$ENV{HOME}/lib"
+  RUNTIME  DESTINATION "$ENV{HOME}/lib")
 INSTALL(               FILES ${header_files} DESTINATION "$ENV{HOME}/include")
 
 #Executable
