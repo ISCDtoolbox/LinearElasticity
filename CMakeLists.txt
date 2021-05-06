@@ -24,7 +24,7 @@ INSTALL(               FILES ${header_files} DESTINATION "$ENV{HOME}/include")
 #Executable
 project(main)
 add_executable(        elastic sources/elastic.c)
-target_link_libraries( elastic Commons Elas)
+target_link_libraries( elastic ${Commons} Elas)
 INSTALL(               TARGETS elastic RUNTIME DESTINATION "$ENV{HOME}/bin")
 
 
